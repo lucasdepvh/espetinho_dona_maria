@@ -1,0 +1,11 @@
+<div class="rounded-lg border bg-white p-6">
+  <div class="flex items-start justify-between">
+    <div>
+      <h1 class="text-3xl font-bold"><%= @product.name %></h1>
+      <p class="mt-1 text-stone-600"><%= @product.category.name %></p>
+      <p class="mt-4 text-2xl font-bold text-red-800"><%= brl(@product.price) %></p>
+      <p class="mt-4"><%= @product.description.presence || "Sem descricao." %></p>
+    </div>
+    <%= link_to "Editar", edit_product_path(@product), class: "rounded-md border px-4 py-2" %>
+  </div>
+</div>

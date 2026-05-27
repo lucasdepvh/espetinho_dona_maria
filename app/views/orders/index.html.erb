@@ -1,0 +1,29 @@
+<div class="space-y-4">
+  <div class="flex items-center justify-between">
+    <h1 class="text-3xl font-bold">Pedidos</h1>
+    <%= link_to "Novo pedido", new_order_path, class: "rounded-md bg-red-800 px-4 py-2 text-white" %>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <%= link_to "Todos", orders_path, class: "rounded-md border bg-white px-3 py-2 text-sm" %>
+    <% Order.statuses.keys.each do |status| %>
+      <%= link_to order_status_label(status), orders_path(status: status), class: "rounded-md border bg-white px-3 py-2 text-sm" %>
+    <% end %>
+  </div>
+  <div class="overflow-x-auto rounded-lg border bg-white">
+    <table class="w-full text-left text-sm">
+      <thead class="bg-stone-100"><tr><th class="p-3">Pedido</th><th>Cliente</th><th>Tipo</th><th>Status</th><th>Total</th><th></th></tr></thead>
+      <tbody>
+        <% @orders.each do |order| %>
+          <tr class="border-t">
+            <td class="p-3"><%= link_to "##{order.id}", order, class: "font-medium text-red-800" %></td>
+            <td><%= order.customer.name %></td>
+            <td><%= order_type_label(order.order_type) %></td>
+            <td><span class="rounded-full px-2 py-1 text-xs <%= status_badge_class(order.status) %>"><%= order_status_label(order.status) %></span></td>
+            <td><%= brl(order.total) %></td>
+            <td><%= link_to "Editar", edit_order_path(order), class: "text-stone-600 hover:text-red-800" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,27 @@
+<div class="space-y-4">
+  <div class="flex items-center justify-between">
+    <h1 class="text-3xl font-bold">Produtos</h1>
+    <%= link_to "Novo produto", new_product_path, class: "rounded-md bg-red-800 px-4 py-2 text-white" %>
+  </div>
+  <%= form_with url: products_path, method: :get, class: "flex flex-wrap gap-3 rounded-lg border bg-white p-4" do |form| %>
+    <%= form.collection_select :category_id, @categories, :id, :name, { include_blank: "Todas as categorias", selected: params[:category_id] }, class: "rounded-md border-stone-300" %>
+    <%= form.select :active, [["Todos", ""], ["Ativos", true], ["Inativos", false]], { selected: params[:active] }, class: "rounded-md border-stone-300" %>
+    <%= form.submit "Filtrar", class: "rounded-md border px-4 py-2" %>
+  <% end %>
+  <div class="overflow-x-auto rounded-lg border bg-white">
+    <table class="w-full text-left text-sm">
+      <thead class="bg-stone-100"><tr><th class="p-3">Produto</th><th>Categoria</th><th>Preco</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        <% @products.each do |product| %>
+          <tr class="border-t">
+            <td class="p-3"><%= link_to product.name, product, class: "font-medium text-red-800" %></td>
+            <td><%= product.category.name %></td>
+            <td><%= brl(product.price) %></td>
+            <td><%= product.active? ? "Ativo" : "Inativo" %></td>
+            <td><%= link_to "Editar", edit_product_path(product), class: "text-stone-600 hover:text-red-800" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>

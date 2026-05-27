@@ -1,0 +1,33 @@
+<div class="mx-auto max-w-2xl rounded-lg border bg-white p-6">
+  <h1 class="mb-6 text-2xl font-bold">Configuracoes</h1>
+  <%= render "shared/errors", object: @setting %>
+  <%= form_with model: @setting, url: settings_path, class: "space-y-4" do |form| %>
+    <div>
+      <%= form.label :establishment_name, "Nome da espetaria", class: "text-sm font-medium" %>
+      <%= form.text_field :establishment_name, class: "mt-1 w-full rounded-md border-stone-300" %>
+    </div>
+    <div class="grid gap-4 md:grid-cols-2">
+      <div>
+        <%= form.label :phone, "WhatsApp principal", class: "text-sm font-medium" %>
+        <%= form.text_field :phone, class: "mt-1 w-full rounded-md border-stone-300" %>
+      </div>
+      <div>
+        <%= form.label :kitchen_whatsapp, "WhatsApp da cozinha", class: "text-sm font-medium" %>
+        <%= form.text_field :kitchen_whatsapp, class: "mt-1 w-full rounded-md border-stone-300" %>
+      </div>
+    </div>
+    <div>
+      <%= form.label :address, "Endereco", class: "text-sm font-medium" %>
+      <%= form.text_area :address, rows: 3, class: "mt-1 w-full rounded-md border-stone-300" %>
+    </div>
+    <div>
+      <%= form.label :default_delivery_fee, "Taxa de entrega padrao", class: "text-sm font-medium" %>
+      <%= form.number_field :default_delivery_fee, step: "0.01", min: 0, class: "mt-1 w-full rounded-md border-stone-300" %>
+    </div>
+    <div>
+      <%= form.label :default_final_message, "Mensagem final padrao", class: "text-sm font-medium" %>
+      <%= form.text_area :default_final_message, rows: 4, class: "mt-1 w-full rounded-md border-stone-300" %>
+    </div>
+    <%= form.submit "Salvar configuracoes", class: "rounded-md bg-red-800 px-4 py-2 font-medium text-white hover:bg-red-900" %>
+  <% end %>
+</div>

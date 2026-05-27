@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  establishment_name: MyString
+  phone: MyString
+  kitchen_whatsapp: MyString
+  address: MyText
+  default_delivery_fee: 9.99
+  default_final_message: MyText
+
+two:
+  establishment_name: MyString
+  phone: MyString
+  kitchen_whatsapp: MyString
+  address: MyText
+  default_delivery_fee: 9.99
+  default_final_message: MyText

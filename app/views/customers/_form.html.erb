@@ -1,0 +1,16 @@
+<%= render "shared/errors", object: customer %>
+<%= form_with model: customer, class: "space-y-4" do |form| %>
+  <div>
+    <%= form.label :name, "Nome", class: "text-sm font-medium" %>
+    <%= form.text_field :name, class: "mt-1 w-full rounded-md border-stone-300" %>
+  </div>
+  <div>
+    <%= form.label :phone, "Telefone / WhatsApp", class: "text-sm font-medium" %>
+    <%= form.text_field :phone, class: "mt-1 w-full rounded-md border-stone-300" %>
+  </div>
+  <div>
+    <%= form.label :address, "Endereco", class: "text-sm font-medium" %>
+    <%= form.text_area :address, rows: 3, class: "mt-1 w-full rounded-md border-stone-300" %>
+  </div>
+  <%= form.submit "Salvar", class: "rounded-md bg-red-800 px-4 py-2 font-medium text-white hover:bg-red-900" %>
+<% end %>

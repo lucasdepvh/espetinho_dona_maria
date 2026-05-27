@@ -1,0 +1,33 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  customer: one
+  user: one
+  status: 1
+  order_type: 1
+  table_number: MyString
+  delivery_address: MyText
+  payment_method: 1
+  change_for: 9.99
+  delivery_fee: 9.99
+  subtotal: 9.99
+  total: 9.99
+  notes: MyText
+  whatsapp_sent_at: 2026-05-27 09:45:29
+  kitchen_whatsapp_sent_at: 2026-05-27 09:45:29
+
+two:
+  customer: two
+  user: two
+  status: 1
+  order_type: 1
+  table_number: MyString
+  delivery_address: MyText
+  payment_method: 1
+  change_for: 9.99
+  delivery_fee: 9.99
+  subtotal: 9.99
+  total: 9.99
+  notes: MyText
+  whatsapp_sent_at: 2026-05-27 09:45:29
+  kitchen_whatsapp_sent_at: 2026-05-27 09:45:29

@@ -1,0 +1,13 @@
+<%= render "shared/errors", object: category %>
+<%= form_with model: category, class: "space-y-4" do |form| %>
+  <div>
+    <%= form.label :name, "Nome", class: "text-sm font-medium" %>
+    <%= form.text_field :name, class: "mt-1 w-full rounded-md border-stone-300" %>
+  </div>
+  <div>
+    <%= form.label :description, "Descricao", class: "text-sm font-medium" %>
+    <%= form.text_area :description, rows: 3, class: "mt-1 w-full rounded-md border-stone-300" %>
+  </div>
+  <label class="flex items-center gap-2 text-sm"><%= form.check_box :active, class: "rounded border-stone-300" %> Ativa</label>
+  <%= form.submit "Salvar", class: "rounded-md bg-red-800 px-4 py-2 font-medium text-white hover:bg-red-900" %>
+<% end %>

@@ -1,0 +1,17 @@
+<div class="space-y-4">
+  <div class="flex items-center justify-between">
+    <h1 class="text-3xl font-bold">Categorias</h1>
+    <%= link_to "Nova categoria", new_category_path, class: "rounded-md bg-red-800 px-4 py-2 text-white" %>
+  </div>
+  <div class="rounded-lg border bg-white">
+    <% @categories.each do |category| %>
+      <div class="flex items-center justify-between border-b p-4 last:border-0">
+        <div>
+          <%= link_to category.name, category, class: "font-semibold text-red-800" %>
+          <p class="text-sm text-stone-500"><%= category.active? ? "Ativa" : "Inativa" %></p>
+        </div>
+        <%= link_to "Editar", edit_category_path(category), class: "text-sm text-stone-600 hover:text-red-800" %>
+      </div>
+    <% end %>
+  </div>
+</div>

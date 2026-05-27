@@ -1,0 +1,30 @@
+<%= render "shared/errors", object: product %>
+<%= form_with model: product, class: "space-y-4" do |form| %>
+  <div>
+    <%= form.label :category_id, "Categoria", class: "text-sm font-medium" %>
+    <%= form.collection_select :category_id, Category.order(:name), :id, :name, { prompt: "Selecione" }, class: "mt-1 w-full rounded-md border-stone-300" %>
+  </div>
+  <div>
+    <%= form.label :name, "Nome", class: "text-sm font-medium" %>
+    <%= form.text_field :name, class: "mt-1 w-full rounded-md border-stone-300" %>
+  </div>
+  <div>
+    <%= form.label :description, "Descricao", class: "text-sm font-medium" %>
+    <%= form.text_area :description, rows: 3, class: "mt-1 w-full rounded-md border-stone-300" %>
+  </div>
+  <div class="grid gap-4 md:grid-cols-2">
+    <div>
+      <%= form.label :price, "Preco", class: "text-sm font-medium" %>
+      <%= form.number_field :price, step: "0.01", min: 0, class: "mt-1 w-full rounded-md border-stone-300" %>
+    </div>
+    <div>
+      <%= form.label :average_preparation_time, "Tempo medio (min)", class: "text-sm font-medium" %>
+      <%= form.number_field :average_preparation_time, min: 0, class: "mt-1 w-full rounded-md border-stone-300" %>
+    </div>
+  </div>
+  <div class="flex gap-4">
+    <label class="flex items-center gap-2 text-sm"><%= form.check_box :active, class: "rounded border-stone-300" %> Ativo</label>
+    <label class="flex items-center gap-2 text-sm"><%= form.check_box :featured, class: "rounded border-stone-300" %> Destaque</label>
+  </div>
+  <%= form.submit "Salvar", class: "rounded-md bg-red-800 px-4 py-2 font-medium text-white hover:bg-red-900" %>
+<% end %>

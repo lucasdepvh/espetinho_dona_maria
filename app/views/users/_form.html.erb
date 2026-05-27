@@ -1,0 +1,27 @@
+<%= render "shared/errors", object: user %>
+<%= form_with model: user, class: "space-y-4" do |form| %>
+  <div>
+    <%= form.label :name, "Nome", class: "text-sm font-medium" %>
+    <%= form.text_field :name, class: "mt-1 w-full rounded-md border-stone-300" %>
+  </div>
+  <div>
+    <%= form.label :email, "Email", class: "text-sm font-medium" %>
+    <%= form.email_field :email, class: "mt-1 w-full rounded-md border-stone-300" %>
+  </div>
+  <div class="grid gap-4 md:grid-cols-2">
+    <div>
+      <%= form.label :password, "Senha", class: "text-sm font-medium" %>
+      <%= form.password_field :password, class: "mt-1 w-full rounded-md border-stone-300" %>
+    </div>
+    <div>
+      <%= form.label :password_confirmation, "Confirmar senha", class: "text-sm font-medium" %>
+      <%= form.password_field :password_confirmation, class: "mt-1 w-full rounded-md border-stone-300" %>
+    </div>
+  </div>
+  <div>
+    <%= form.label :role, "Perfil", class: "text-sm font-medium" %>
+    <%= form.select :role, User.roles.keys.map { |key| [key == "admin" ? "Admin" : "Atendente", key] }, {}, class: "mt-1 w-full rounded-md border-stone-300" %>
+  </div>
+  <label class="flex items-center gap-2 text-sm"><%= form.check_box :active, class: "rounded border-stone-300" %> Ativo</label>
+  <%= form.submit "Salvar", class: "rounded-md bg-red-800 px-4 py-2 font-medium text-white hover:bg-red-900" %>
+<% end %>

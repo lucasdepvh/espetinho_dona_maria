@@ -1,0 +1,92 @@
+<%= render "shared/errors", object: order %>
+<%= form_with model: order, class: "space-y-6" do |form| %>
+  <section class="rounded-lg border bg-white p-5">
+    <h2 class="mb-4 text-lg font-semibold">Cliente</h2>
+    <div class="grid gap-4 md:grid-cols-2">
+      <div>
+        <%= form.label :customer_id, "Cliente cadastrado", class: "text-sm font-medium" %>
+        <%= form.collection_select :customer_id, @customers, :id, :name, { include_blank: "Criar novo cliente" }, class: "mt-1 w-full rounded-md border-stone-300" %>
+      </div>
+      <div>
+        <%= label_tag :customer_phone, "Telefone / WhatsApp", class: "text-sm font-medium" %>
+        <%= text_field_tag :customer_phone, order.customer&.phone, class: "mt-1 w-full rounded-md border-stone-300" %>
+      </div>
+      <div>
+        <%= label_tag :customer_name, "Nome do novo cliente", class: "text-sm font-medium" %>
+        <%= text_field_tag :customer_name, order.customer&.name, class: "mt-1 w-full rounded-md border-stone-300" %>
+      </div>
+      <div>
+        <%= label_tag :customer_address, "Endereco do cliente", class: "text-sm font-medium" %>
+        <%= text_field_tag :customer_address, order.customer&.address, class: "mt-1 w-full rounded-md border-stone-300" %>
+      </div>
+    </div>
+  </section>
+
+  <section class="rounded-lg border bg-white p-5">
+    <h2 class="mb-4 text-lg font-semibold">Pedido</h2>
+    <div class="grid gap-4 md:grid-cols-3">
+      <div>
+        <%= form.label :order_type, "Tipo", class: "text-sm font-medium" %>
+        <%= form.select :order_type, Order.order_types.keys.map { |key| [order_type_label(key), key] }, {}, class: "mt-1 w-full rounded-md border-stone-300" %>
+      </div>
+      <div>
+        <%= form.label :table_number, "Mesa", class: "text-sm font-medium" %>
+        <%= form.text_field :table_number, class: "mt-1 w-full rounded-md border-stone-300" %>
+      </div>
+      <div>
+        <%= form.label :payment_method, "Pagamento", class: "text-sm font-medium" %>
+        <%= form.select :payment_method, Order.payment_methods.keys.map { |key| [payment_method_label(key), key] }, {}, class: "mt-1 w-full rounded-md border-stone-300" %>
+      </div>
+      <div class="md:col-span-2">
+        <%= form.label :delivery_address, "Endereco de entrega", class: "text-sm font-medium" %>
+        <%= form.text_field :delivery_address, class: "mt-1 w-full rounded-md border-stone-300" %>
+      </div>
+      <div>
+        <%= form.label :delivery_fee, "Taxa de entrega", class: "text-sm font-medium" %>
+        <%= form.number_field :delivery_fee, step: "0.01", min: 0, class: "mt-1 w-full rounded-md border-stone-300" %>
+      </div>
+      <div>
+        <%= form.label :change_for, "Troco para", class: "text-sm font-medium" %>
+        <%= form.number_field :change_for, step: "0.01", min: 0, class: "mt-1 w-full rounded-md border-stone-300" %>
+      </div>
+      <div>
+        <%= form.label :status, "Status", class: "text-sm font-medium" %>
+        <%= form.select :status, Order.statuses.keys.map { |key| [order_status_label(key), key] }, {}, class: "mt-1 w-full rounded-md border-stone-300" %>
+      </div>
+      <div class="md:col-span-3">
+        <%= form.label :notes, "Observacao geral", class: "text-sm font-medium" %>
+        <%= form.text_area :notes, rows: 3, class: "mt-1 w-full rounded-md border-stone-300" %>
+      </div>
+    </div>
+  </section>
+
+  <section class="rounded-lg border bg-white p-5">
+    <h2 class="mb-4 text-lg font-semibold">Itens</h2>
+    <div class="space-y-3">
+      <%= form.fields_for :order_items do |item_form| %>
+        <div class="grid gap-3 rounded-md border border-stone-200 p-3 md:grid-cols-12">
+          <div class="md:col-span-5">
+            <%= item_form.label :product_id, "Produto", class: "text-sm font-medium" %>
+            <%= item_form.collection_select :product_id, @products, :id, :name, { include_blank: "Selecione" }, class: "mt-1 w-full rounded-md border-stone-300" %>
+          </div>
+          <div class="md:col-span-2">
+            <%= item_form.label :quantity, "Qtd", class: "text-sm font-medium" %>
+            <%= item_form.number_field :quantity, min: 1, class: "mt-1 w-full rounded-md border-stone-300" %>
+          </div>
+          <div class="md:col-span-4">
+            <%= item_form.label :notes, "Observacao", class: "text-sm font-medium" %>
+            <%= item_form.text_field :notes, class: "mt-1 w-full rounded-md border-stone-300" %>
+          </div>
+          <% if item_form.object.persisted? %>
+            <label class="flex items-end gap-2 text-sm md:col-span-1"><%= item_form.check_box :_destroy, class: "rounded border-stone-300" %> Remover</label>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </section>
+
+  <div class="flex items-center gap-3">
+    <%= form.submit "Salvar pedido", class: "rounded-md bg-red-800 px-5 py-2 font-medium text-white hover:bg-red-900" %>
+    <%= link_to "Cancelar", orders_path, class: "rounded-md border px-5 py-2" %>
+  </div>
+<% end %>

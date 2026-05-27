@@ -1,0 +1,50 @@
+<div class="grid gap-6 lg:grid-cols-3">
+  <section class="space-y-6 lg:col-span-2">
+    <div class="rounded-lg border bg-white p-6">
+      <div class="flex items-start justify-between">
+        <div>
+          <h1 class="text-3xl font-bold">Pedido #<%= @order.id %></h1>
+          <p class="text-stone-600"><%= @order.customer.name %> - <%= order_type_label(@order.order_type) %></p>
+        </div>
+        <span class="rounded-full px-3 py-1 text-sm <%= status_badge_class(@order.status) %>"><%= order_status_label(@order.status) %></span>
+      </div>
+      <div class="mt-6 divide-y">
+        <% @order.order_items.each do |item| %>
+          <div class="flex justify-between py-3">
+            <div>
+              <p class="font-medium"><%= item.quantity %>x <%= item.product.name %></p>
+              <% if item.notes.present? %><p class="text-sm text-stone-500">Obs: <%= item.notes %></p><% end %>
+            </div>
+            <p><%= brl(item.total_price) %></p>
+          </div>
+        <% end %>
+      </div>
+      <div class="mt-4 space-y-1 border-t pt-4 text-right">
+        <p>Subtotal: <%= brl(@order.subtotal) %></p>
+        <p>Taxa de entrega: <%= brl(@order.delivery_fee) %></p>
+        <p class="text-xl font-bold">Total: <%= brl(@order.total) %></p>
+      </div>
+      <% if @order.notes.present? %><p class="mt-4 rounded-md bg-stone-100 p-3 text-sm"><%= @order.notes %></p><% end %>
+    </div>
+  </section>
+
+  <aside class="space-y-4">
+    <div class="rounded-lg border bg-white p-5">
+      <h2 class="mb-3 font-semibold">Acoes</h2>
+      <div class="space-y-2">
+        <%= link_to "Editar pedido", edit_order_path(@order), class: "block rounded-md border px-4 py-2 text-center" %>
+        <%= link_to "Enviar pedido no WhatsApp", whatsapp_order_path(@order), class: "block rounded-md bg-emerald-700 px-4 py-2 text-center text-white", target: "_blank" %>
+        <%= link_to "Enviar para cozinha", kitchen_whatsapp_order_path(@order), class: "block rounded-md bg-amber-700 px-4 py-2 text-center text-white", target: "_blank" %>
+        <%= button_to "Cancelar pedido", cancel_order_path(@order), method: :patch, class: "w-full rounded-md border border-red-200 px-4 py-2 text-red-700" unless @order.canceled? %>
+      </div>
+    </div>
+    <div class="rounded-lg border bg-white p-5">
+      <h2 class="mb-3 font-semibold">Alterar status</h2>
+      <div class="grid gap-2">
+        <% Order.statuses.keys.each do |status| %>
+          <%= button_to order_status_label(status), update_status_order_path(@order, status: status), method: :patch, class: "rounded-md border px-3 py-2 text-sm hover:bg-stone-100" %>
+        <% end %>
+      </div>
+    </div>
+  </aside>
+</div>

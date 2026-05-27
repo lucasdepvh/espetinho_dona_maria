@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= content_for(:title) || "Espetinho Dona Maria" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Espetinho Dona Maria">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
+    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="<%= content_for?(:body_class) ? yield(:body_class) : "bg-stone-50 text-stone-900" %>">
+    <% unless content_for?(:hide_app_header) %>
+      <header class="border-b border-stone-200 bg-white">
+        <div class="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-4 md:flex-row md:items-center md:justify-between">
+          <%= link_to root_path, class: "text-xl font-bold text-red-800" do %>
+            Espetinho Dona Maria
+          <% end %>
+          <% if logged_in? %>
+            <nav class="flex flex-wrap items-center gap-2 text-sm">
+              <%= link_to "Dashboard", root_path, class: "rounded-md px-3 py-2 hover:bg-stone-100" %>
+              <%= link_to "Pedidos", orders_path, class: "rounded-md px-3 py-2 hover:bg-stone-100" %>
+              <%= link_to "Novo pedido", new_order_path, class: "rounded-md bg-red-800 px-3 py-2 font-medium text-white hover:bg-red-900" %>
+              <%= link_to "Cozinha", kitchen_path, class: "rounded-md px-3 py-2 hover:bg-stone-100" %>
+              <%= link_to "Clientes", customers_path, class: "rounded-md px-3 py-2 hover:bg-stone-100" %>
+              <% if current_user.admin? %>
+                <%= link_to "Produtos", products_path, class: "rounded-md px-3 py-2 hover:bg-stone-100" %>
+                <%= link_to "Categorias", categories_path, class: "rounded-md px-3 py-2 hover:bg-stone-100" %>
+                <%= link_to "Usuarios", users_path, class: "rounded-md px-3 py-2 hover:bg-stone-100" %>
+                <%= link_to "Configuracoes", edit_settings_path, class: "rounded-md px-3 py-2 hover:bg-stone-100" %>
+              <% end %>
+              <%= button_to "Sair", logout_path, method: :delete, class: "rounded-md px-3 py-2 text-stone-600 hover:bg-stone-100" %>
+            </nav>
+          <% end %>
+        </div>
+      </header>
+    <% end %>
+
+    <main class="<%= content_for?(:main_class) ? yield(:main_class) : "mx-auto max-w-7xl px-5 py-8" %>">
+      <% flash.each do |type, message| %>
+        <div class="mb-4 rounded-md border px-4 py-3 <%= type == 'alert' ? 'border-red-200 bg-red-50 text-red-800' : 'border-emerald-200 bg-emerald-50 text-emerald-800' %>">
+          <%= message %>
+        </div>
+      <% end %>
+      <%= yield %>
+    </main>
+  </body>
+</html>

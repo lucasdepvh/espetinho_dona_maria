@@ -1,0 +1,18 @@
+<div class="space-y-4">
+  <h1 class="text-3xl font-bold">Clientes</h1>
+  <div class="overflow-x-auto rounded-lg border bg-white">
+    <table class="w-full text-left text-sm">
+      <thead class="bg-stone-100"><tr><th class="p-3">Nome</th><th>WhatsApp</th><th>Pedidos</th><th></th></tr></thead>
+      <tbody>
+        <% @customers.each do |customer| %>
+          <tr class="border-t">
+            <td class="p-3"><%= link_to customer.name, customer, class: "font-medium text-red-800" %></td>
+            <td><%= customer.phone.presence || "-" %></td>
+            <td><%= customer.orders.size %></td>
+            <td><%= link_to "Editar", edit_customer_path(customer), class: "text-stone-600 hover:text-red-800" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
