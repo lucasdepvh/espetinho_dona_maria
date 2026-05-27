@@ -26,6 +26,6 @@ class ApplicationController < ActionController::Base
   def authorize_admin!
     return if current_user&.admin?
 
-    redirect_to root_path, alert: "Acesso restrito a administradores."
+    redirect_to dashboard_path, alert: "Acesso restrito a administradores."
   end
 end

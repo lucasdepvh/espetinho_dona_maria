@@ -1,11 +1,11 @@
 Rails.application.routes.draw do
   root "dashboard#index"
+  get "dashboard", to: "dashboard#index", as: :dashboard
 
   get "login", to: "sessions#new"
   post "login", to: "sessions#create"
   delete "logout", to: "sessions#destroy"
 
-  resource :dashboard, only: :show, controller: :dashboard
   get "kitchen", to: "kitchen#index", as: :kitchen
   resource :settings, only: %i[edit update]
 

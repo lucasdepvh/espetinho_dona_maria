@@ -1,11 +1,9 @@
 class DashboardController < ApplicationController
-  before_action :authenticate_user!
-
   def index
     @setting = Setting.current
-    @orders_today = Order.today
+    @orders_today = logged_in? ? visible_orders.today : Order.none
     @revenue_today = @orders_today.billable.sum(:total)
-    @status_counts = Order.group(:status).count
+    @status_counts = logged_in? ? visible_orders.group(:status).count : {}
     @latest_orders = visible_orders.includes(:customer).recent.limit(4)
     @categories = Category.active.includes(:products).order(:name)
     @featured_products = Product.available_for_orders.includes(:category).featured.order(:name).limit(2)
@@ -22,6 +20,8 @@ class DashboardController < ApplicationController
   private
 
   def visible_orders
+    return Order.none unless logged_in?
+
     current_user.admin? ? Order.all : current_user.orders
   end
 end
