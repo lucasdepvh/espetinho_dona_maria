@@ -2,97 +2,100 @@
 <% content_for :body_class, "bg-[#121414] text-stone-100 antialiased" %>
 <% content_for :main_class, "pb-28" %>
 <% content_for :hide_app_header, true %>
+<% cart_drawer_open = params[:cart] == "open" %>
 
 <header class="fixed inset-x-0 top-0 z-50 border-b border-stone-800 bg-[#121414]/95 backdrop-blur">
   <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
     <div class="flex items-center gap-4">
-      <button type="button" class="flex h-11 w-11 items-center justify-center rounded-full text-orange-300 transition hover:bg-stone-800">
-        <span aria-hidden="true" class="text-xl">☰</span>
-      </button>
+      <div class="flex h-11 w-11 items-center justify-center rounded-full bg-stone-900/80 text-xl text-orange-300">
+        <span aria-hidden="true">🔥</span>
+      </div>
       <div>
-        <p class="text-xs font-medium uppercase tracking-[0.18em] text-stone-500">Dashboard</p>
+        <p class="text-xs font-medium uppercase tracking-[0.18em] text-stone-500">
+          <%= logged_in? ? "Painel da casa" : "Cardapio" %>
+        </p>
         <h1 class="text-base font-semibold text-orange-300 sm:text-lg"><%= @setting.establishment_name.upcase %></h1>
       </div>
     </div>
 
     <div class="flex items-center gap-2">
-      <%= link_to(logged_in? ? orders_path : login_path, class: "relative flex h-11 w-11 items-center justify-center rounded-full text-orange-300 transition hover:bg-stone-800") do %>
-        <span aria-hidden="true" class="text-lg">🛒</span>
-        <span id="cart-count" class="absolute right-1 top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1 text-[11px] font-bold text-stone-950"><%= @active_orders_count %></span>
+      <% if logged_in? %>
+        <%= link_to logout_path, data: { turbo_method: :delete }, class: "inline-flex items-center rounded-full border border-stone-800 px-4 py-2 text-sm font-medium text-stone-300 transition hover:border-orange-400 hover:text-stone-100" do %>
+          Sair
+        <% end %>
+      <% else %>
+        <%= link_to login_path, class: "inline-flex items-center rounded-full border border-stone-800 px-4 py-2 text-sm font-medium text-stone-300 transition hover:border-orange-400 hover:text-stone-100" do %>
+          Entrar
+        <% end %>
       <% end %>
+
+      <button type="button" data-cart-open class="relative flex h-11 w-11 items-center justify-center rounded-full text-orange-300 transition hover:bg-stone-800" aria-controls="carrinho" aria-expanded="<%= cart_drawer_open %>">
+        <span aria-hidden="true" class="text-lg">🛒</span>
+        <span id="cart-count" class="absolute right-1 top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1 text-[11px] font-bold text-stone-950"><%= @cart_count %></span>
+      </button>
     </div>
   </div>
 </header>
 
-<section class="relative mx-auto max-w-6xl px-4 pt-20 sm:px-6">
-  <div class="absolute inset-x-0 top-0 -z-10 h-64 bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.18),_transparent_55%)]"></div>
+<% if logged_in? %>
+  <section class="mx-auto mb-10 max-w-6xl px-4 sm:px-6">
+    <div class="mb-4">
+      <h3 class="text-2xl font-semibold text-stone-100">Painel da operacao</h3>
+      <p class="text-sm text-stone-400">Somente equipe. Atalhos para fluxo interno sem poluir visao de cliente.</p>
+    </div>
 
-  <div class="space-y-6 py-8">
-    <div class="space-y-2">
-      <p class="text-sm font-medium text-amber-200">
-        <%= logged_in? ? "Bem-vindo, #{current_user.name}" : "Bem-vindo ao #{@setting.establishment_name}" %>
-      </p>
-      <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div class="max-w-2xl space-y-2">
-          <h2 class="text-4xl font-bold leading-tight text-stone-100 sm:text-5xl">Olá, o que vamos <span class="text-orange-400">grelhar</span> hoje?</h2>
-          <p class="text-sm text-stone-400 sm:text-base">
-            <%= @setting.address.presence || "Monte o pedido, acompanhe a cozinha e feche o atendimento sem sair desta tela." %>
-          </p>
-          <% unless logged_in? %>
-            <div class="pt-3">
-              <%= link_to "Entrar no sistema", login_path, class: "inline-flex items-center rounded-xl bg-orange-500 px-4 py-3 text-sm font-semibold text-stone-950 transition hover:bg-orange-400" %>
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <% dashboard_operation_links(current_user).each do |link| %>
+        <%= link_to link[:path], class: "rounded-2xl border border-stone-800 bg-stone-900/75 p-5 transition hover:border-orange-400" do %>
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h4 class="text-lg font-semibold text-stone-100"><%= link[:label] %></h4>
+              <p class="mt-2 text-sm text-stone-400"><%= link[:description] %></p>
             </div>
-          <% end %>
-        </div>
-
-        <% if current_user&.admin? %>
-          <div class="grid grid-cols-2 gap-3 sm:min-w-[320px]">
-            <div class="rounded-2xl border border-stone-800 bg-stone-900/80 p-4">
-              <p class="text-xs uppercase tracking-[0.16em] text-stone-500">Pedidos hoje</p>
-              <p class="mt-2 text-2xl font-bold text-stone-100"><%= @orders_today.count %></p>
-            </div>
-            <div class="rounded-2xl border border-stone-800 bg-stone-900/80 p-4">
-              <p class="text-xs uppercase tracking-[0.16em] text-stone-500">Faturamento</p>
-              <p class="mt-2 text-2xl font-bold text-stone-100"><%= brl(@revenue_today) %></p>
-            </div>
+            <span class="text-3xl" aria-hidden="true"><%= link[:emoji] %></span>
           </div>
         <% end %>
-      </div>
+      <% end %>
     </div>
+  </section>
+<% end %>
 
-    <div class="relative">
-      <span class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-stone-500">⌕</span>
-      <input type="text" placeholder="Buscar espetos, bebidas..." class="h-14 w-full rounded-2xl border border-stone-800 bg-stone-900/80 pl-12 pr-4 text-stone-100 placeholder:text-stone-500 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30">
-    </div>
-  </div>
-</section>
-
-<section class="mx-auto mb-10 max-w-6xl px-4 sm:px-6">
+<section id="cardapio" class="mx-auto mb-10 max-w-6xl px-4 sm:px-6">
   <div class="mb-4 flex items-end justify-between gap-4">
     <div>
-      <h3 class="text-2xl font-semibold text-stone-100">Ofertas de Brasa</h3>
-      <p class="text-sm text-stone-400">Produtos em destaque para acelerar o atendimento.</p>
+      <h3 class="text-2xl font-semibold text-stone-100">Ofertas de brasa</h3>
+      <p class="text-sm text-stone-400">Destaques para acelerar decisao e atendimento.</p>
     </div>
-    <%= link_to "Ver todos", (logged_in? && current_user.admin? ? products_path : login_path), class: "text-sm font-semibold text-orange-300 hover:text-orange-200" %>
+    <%= link_to "Ver categorias", dashboard_path(anchor: "categorias"), class: "text-sm font-semibold text-orange-300 hover:text-orange-200" %>
   </div>
 
-  <div class="flex snap-x gap-4 overflow-x-auto pb-2">
-    <% @featured_products.each_with_index do |product, index| %>
-      <article class="relative h-52 min-w-[300px] snap-start overflow-hidden rounded-2xl border border-stone-800 bg-stone-900">
-        <img src="<%= index.zero? ? 'https://lh3.googleusercontent.com/aida-public/AB6AXuBex-on0puB4vYvfdyZGQ7x3Uq0Ps67pKOx9QhBsOOhlQPb-8MMBIMskq4qk5ADCyF6p4vNEJcV88i-t8v6IVFlTUxKKG7e5BGD4295lH50VygGYmFR8opImnwK5YS2XDVaAlZ9Gq58mkQOitF8kIMD_ovpRG8DmRsbciwD331ZHgBYwZou5TsS--O2JaUDN3fOtnFxYaymIzOojtOE30huaBadbodGDKVEXyJ6rRUZPJl5gB5vJJsd9LhIHiEAt0xGv-yW3jZ7YWjt' : 'https://lh3.googleusercontent.com/aida-public/AB6AXuCHdtV6TqIjslCjlGF5KskzHypVFSKOoRlW5B0zm2w2PHLAkHbX5dobe6QAJ5Uh3LL7RbgSkMvxbJ7DdkpgfIN0ddbqpWu-mkiJnZMmAAmtBFPHbQsDlKfYqK3h23EjHInCtvuR8D6jWxRyPWjCYKwZftk6YbPMymqYh5wE2y7WDYTXW6VQsXoOXEQ-Pl7GgbA13ndm7Z7Y94D_OQtx8DjKwESe51P13BtYssvZteO1z-II9_zhtWGHB6LCwG5epx3WP3K_5gG_03lP' %>" alt="<%= product.name %>" class="absolute inset-0 h-full w-full object-cover">
-        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/55 to-transparent"></div>
-        <div class="absolute inset-x-0 bottom-0 p-5">
-          <span class="mb-3 inline-flex rounded-md bg-amber-300 px-2 py-1 text-[11px] font-bold tracking-wide text-stone-950"><%= dashboard_promo_label(product) %></span>
-          <h4 class="text-xl font-bold text-white"><%= product.name %></h4>
-          <p class="mt-1 text-sm text-stone-200"><%= dashboard_product_description(product) %></p>
-          <p class="mt-3 text-lg font-bold text-orange-300"><%= brl(product.price) %></p>
-        </div>
-      </article>
-    <% end %>
-  </div>
+  <% if @featured_products.any? %>
+    <div class="flex snap-x gap-4 overflow-x-auto pb-2">
+      <% @featured_products.each do |product| %>
+        <article class="relative h-56 min-w-[300px] snap-start overflow-hidden rounded-2xl border border-stone-800 bg-stone-900">
+          <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(251,146,60,0.30),_transparent_55%),linear-gradient(180deg,_rgba(28,25,23,0.15),_rgba(12,10,9,0.92))]"></div>
+          <div class="absolute inset-x-0 bottom-0 p-5">
+            <span class="mb-3 inline-flex rounded-md bg-amber-300 px-2 py-1 text-[11px] font-bold tracking-wide text-stone-950"><%= dashboard_promo_label(product) %></span>
+            <h4 class="text-xl font-bold text-white"><%= product.name %></h4>
+            <p class="mt-1 text-sm text-stone-200"><%= dashboard_product_description(product) %></p>
+            <div class="mt-4 flex items-center justify-between gap-4">
+              <p class="text-lg font-bold text-orange-300"><%= brl(product.price) %></p>
+              <%= button_to dashboard_cart_items_path(product), method: :post, class: "inline-flex items-center rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-stone-950 transition hover:bg-orange-400" do %>
+                Adicionar
+              <% end %>
+            </div>
+          </div>
+        </article>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="rounded-2xl border border-dashed border-stone-800 bg-stone-900/40 p-6 text-sm text-stone-400">
+      Nenhum destaque disponivel no momento.
+    </div>
+  <% end %>
 </section>
 
-<section class="mx-auto mb-10 max-w-6xl px-4 sm:px-6">
+<section id="categorias" class="mx-auto mb-10 max-w-6xl px-4 sm:px-6">
   <h3 class="mb-5 text-2xl font-semibold text-stone-100">Categorias</h3>
   <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
     <% @categories.each do |category| %>
@@ -112,34 +115,124 @@
 <section class="mx-auto mb-10 max-w-6xl px-4 sm:px-6">
   <div class="mb-4 flex items-end justify-between gap-4">
     <div>
-      <h3 class="text-2xl font-semibold text-stone-100">Os Favoritos</h3>
-      <p class="text-sm text-stone-400">Itens com giro alto para o balcão.</p>
+      <h3 class="text-2xl font-semibold text-stone-100">Mais pedidos</h3>
+      <p class="text-sm text-stone-400">Itens com giro forte e leitura simples para cliente.</p>
     </div>
-    <%= link_to "Ver todos", (logged_in? ? new_order_path : login_path), class: "text-sm font-semibold text-orange-300 hover:text-orange-200" %>
+    <button type="button" data-cart-open class="text-sm font-semibold text-orange-300 hover:text-orange-200">Ver carrinho</button>
   </div>
 
-  <div class="grid gap-4 lg:grid-cols-2">
-    <% @popular_products.each_with_index do |product, index| %>
-      <article class="flex gap-4 rounded-2xl border border-stone-800 bg-stone-900/80 p-3 transition hover:border-orange-400">
-        <div class="h-24 w-24 flex-none overflow-hidden rounded-xl">
-          <img src="<%= index.even? ? 'https://lh3.googleusercontent.com/aida-public/AB6AXuBOBQSrZ_R1r1xkSXBlK4hJM0b1b0r3Bxxlx7891BVxymm54SkeNUCUDNJ7U3EnNHq7Z4S7u5-YFyaVbmwMjuWvQPXmWzhg9S2L9iKZl2nd365JAkSJyVV5rY_tRqRtdYB_D0FVuSmZErAdmNRvBWH5KhKddbMEwerz3FepMjKehpSNbtIGr-tPh6-KjG2B3OcEou7iNM0j2eyIuCL7O8SoeAOKhrtbG0Yo19Rpfm3js0ChX8tFRhVful9L1UxKUH8aDs0LV3g6tZuZ' : 'https://lh3.googleusercontent.com/aida-public/AB6AXuDCO_sW1LdWdL0xQ2J_9l_lvSNJM1hiE7RWWATVTTbsusnMxeLs6gYg7m4l5noFe7eMGko5Vl65mrSRzESQAzben3UAZIfQTcd_4hQeIggjPWLOv1PzOO3MYaAvihM88Gyi9L34i-kekLDRUeZXdx_7-fKq-TZmzQv-KdFQN2tIjtb42thXs-AcckzZdxsEfK0BZkM4jpAAjNUiO06J1gobU8N36ag2-aofO9fSJQkbE1Vr5__urNQ1wy4kMjNvCMtw-lhwCK7ibVTy' %>" alt="<%= product.name %>" class="h-full w-full object-cover">
-        </div>
-        <div class="flex min-w-0 flex-1 items-center justify-between gap-4">
-          <div class="min-w-0">
-            <h4 class="truncate text-base font-semibold text-stone-100"><%= product.name %></h4>
-            <p class="mt-1 line-clamp-2 text-sm text-stone-400"><%= dashboard_product_description(product) %></p>
-            <p class="mt-3 text-lg font-bold text-orange-300"><%= brl(product.price) %></p>
+  <% if @popular_products.any? %>
+    <div class="grid gap-4 lg:grid-cols-2">
+      <% @popular_products.each do |product| %>
+        <article class="flex gap-4 rounded-2xl border border-stone-800 bg-stone-900/80 p-4 transition hover:border-orange-400">
+          <div class="flex h-24 w-24 flex-none items-center justify-center rounded-2xl bg-stone-800 text-4xl">
+            <span aria-hidden="true"><%= dashboard_category_icon(product.category.name) %></span>
           </div>
-          <button type="button" data-add-item class="flex h-11 w-11 flex-none items-center justify-center rounded-full bg-orange-500 text-2xl font-semibold text-stone-950 transition hover:bg-orange-400">
-            <span data-add-icon>+</span>
-          </button>
-        </div>
-      </article>
-    <% end %>
-  </div>
+          <div class="flex min-w-0 flex-1 items-center justify-between gap-4">
+            <div class="min-w-0">
+              <h4 class="truncate text-base font-semibold text-stone-100"><%= product.name %></h4>
+              <p class="mt-1 line-clamp-2 text-sm text-stone-400"><%= dashboard_product_description(product) %></p>
+              <p class="mt-3 text-lg font-bold text-orange-300"><%= brl(product.price) %></p>
+            </div>
+            <%= button_to dashboard_cart_items_path(product), method: :post, class: "inline-flex items-center rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-stone-950 transition hover:bg-orange-400" do %>
+              Adicionar
+            <% end %>
+          </div>
+        </article>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="rounded-2xl border border-dashed border-stone-800 bg-stone-900/40 p-6 text-sm text-stone-400">
+      Nenhum produto ativo para exibir.
+    </div>
+  <% end %>
 </section>
 
-<% if current_user&.admin? %>
+<div data-cart-overlay class="fixed inset-0 z-[60] bg-black/45 backdrop-blur-[1px] transition-opacity <%= cart_drawer_open ? "opacity-100" : "pointer-events-none opacity-0" %>">
+  <button type="button" data-cart-close class="h-full w-full cursor-default" aria-label="Fechar carrinho"></button>
+</div>
+
+<aside id="carrinho" data-cart-drawer class="fixed inset-y-0 right-0 z-[70] flex w-full max-w-[420px] flex-col bg-white text-stone-950 shadow-2xl shadow-black/30 transition-transform duration-200 <%= cart_drawer_open ? "translate-x-0" : "translate-x-full" %>" aria-label="Carrinho">
+  <div class="flex items-center justify-between gap-4 px-5 py-6">
+    <h3 class="text-xl font-bold text-stone-950">Carrinho de Compras</h3>
+    <button type="button" data-cart-close class="flex h-10 w-10 items-center justify-center text-3xl font-light leading-none text-stone-900 transition hover:text-orange-600" aria-label="Fechar carrinho">
+      ×
+    </button>
+  </div>
+
+  <div class="flex-1 overflow-y-auto px-5 pb-5">
+    <% if @cart_items.any? %>
+      <div class="space-y-5">
+        <% @cart_items.each do |item| %>
+          <div class="grid grid-cols-[56px_1fr_auto] gap-3">
+            <div class="flex h-16 w-14 items-center justify-center rounded-md bg-orange-100 text-2xl">
+              <span aria-hidden="true"><%= dashboard_category_icon(item[:product].category.name) %></span>
+            </div>
+
+            <div class="min-w-0">
+              <p class="line-clamp-2 text-sm font-bold uppercase leading-5 text-stone-900"><%= item[:product].name %></p>
+              <p class="mt-1 text-xs text-stone-500"><%= dashboard_product_description(item[:product]) %></p>
+
+              <div class="mt-3 inline-flex h-9 items-center overflow-hidden rounded-md border border-stone-200 bg-white">
+                <%= button_to dashboard_cart_item_path(item[:product]), method: :patch, params: { quantity: item[:quantity] - 1 }, class: "flex h-9 w-9 items-center justify-center text-sm text-stone-700 transition hover:bg-stone-100" do %>
+                  -
+                <% end %>
+                <span class="flex h-9 min-w-10 items-center justify-center border-x border-stone-200 px-3 text-sm font-semibold text-stone-900"><%= item[:quantity] %></span>
+                <%= button_to dashboard_cart_item_path(item[:product]), method: :patch, params: { quantity: item[:quantity] + 1 }, class: "flex h-9 w-9 items-center justify-center text-sm text-stone-400 transition hover:bg-stone-100 hover:text-stone-900" do %>
+                  +
+                <% end %>
+              </div>
+            </div>
+
+            <div class="flex flex-col items-end justify-between gap-4">
+              <%= button_to dashboard_cart_item_path(item[:product]), method: :patch, params: { quantity: 0 }, class: "flex h-8 w-8 items-center justify-center text-xl text-stone-500 transition hover:text-red-700", aria: { label: "Remover #{item[:product].name}" } do %>
+                🗑
+              <% end %>
+              <p class="whitespace-nowrap text-sm font-bold text-stone-950"><%= brl(item[:total]) %></p>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="mt-8 rounded-lg border border-dashed border-stone-200 bg-stone-50 p-6 text-center">
+        <p class="text-lg font-semibold text-stone-950">Carrinho vazio</p>
+        <p class="mt-2 text-sm text-stone-500">Adicione itens do cardapio para montar pedido com rapidez.</p>
+        <div class="mt-4">
+          <button type="button" data-cart-close class="inline-flex items-center rounded-full border border-stone-300 px-5 py-3 text-sm font-semibold text-stone-900 transition hover:border-orange-500">Continuar comprando</button>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="border-t border-stone-200 bg-white px-5 pb-6 pt-5">
+    <div class="mb-5 space-y-1 text-sm">
+      <div class="flex items-center justify-between gap-4 text-stone-600">
+        <span>Subtotal</span>
+        <span><%= brl(@cart_total) %></span>
+      </div>
+      <div class="flex items-center justify-between gap-4 text-stone-600">
+        <span>Desconto</span>
+        <span>-R$ 0,00</span>
+      </div>
+      <div class="flex items-center justify-between gap-4 text-xs font-bold text-stone-950">
+        <span>Total</span>
+        <span><%= brl(@cart_total) %></span>
+      </div>
+    </div>
+
+    <% if @cart_items.any? %>
+      <% if logged_in? %>
+        <%= link_to "Lancar pedido", new_order_path, class: "flex w-full items-center justify-center rounded-full bg-stone-950 px-4 py-4 text-base font-bold text-white transition hover:bg-stone-800" %>
+      <% else %>
+        <%= button_to "Solicitar no WhatsApp", dashboard_cart_whatsapp_path, method: :post, class: "flex w-full items-center justify-center rounded-full bg-stone-950 px-4 py-4 text-base font-bold text-white transition hover:bg-stone-800" %>
+      <% end %>
+      <button type="button" data-cart-close class="mt-3 flex w-full items-center justify-center rounded-full border border-stone-300 px-4 py-3 text-sm font-semibold text-stone-800 transition hover:border-stone-500">Continuar comprando</button>
+      <p class="mt-4 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-400">O pedido sera enviado pelo WhatsApp</p>
+    <% end %>
+  </div>
+</aside>
+
+<% if logged_in? %>
   <section class="mx-auto mb-8 max-w-6xl px-4 sm:px-6">
     <div class="mb-4 flex items-end justify-between gap-4">
       <div>
@@ -178,54 +271,97 @@
 
 <nav class="fixed inset-x-0 bottom-0 z-50 border-t border-stone-800 bg-[#111313]/95 backdrop-blur">
   <div class="mx-auto flex max-w-6xl items-center justify-around px-2 py-3">
-    <%= link_to root_path, class: dashboard_nav_link_class(root_path) do %>
+    <%= link_to dashboard_path(anchor: "cardapio"), class: dashboard_nav_link_class(active: true) do %>
       <span aria-hidden="true" class="text-lg">🍽</span>
       <span>Cardapio</span>
     <% end %>
-    <%= link_to(logged_in? ? orders_path : login_path, class: dashboard_nav_link_class(logged_in? ? orders_path : login_path)) do %>
-      <span aria-hidden="true" class="text-lg">📋</span>
-      <span>Pedidos</span>
-    <% end %>
-    <%= link_to(logged_in? ? kitchen_path : login_path, class: dashboard_nav_link_class(logged_in? ? kitchen_path : login_path)) do %>
-      <span aria-hidden="true" class="text-lg">🔥</span>
-      <span>Cozinha</span>
-    <% end %>
-    <%= link_to(logged_in? ? customers_path : login_path, class: dashboard_nav_link_class(logged_in? ? customers_path : login_path)) do %>
-      <span aria-hidden="true" class="text-lg">👤</span>
-      <span>Clientes</span>
+
+    <% if logged_in? %>
+      <%= link_to orders_path, class: dashboard_nav_link_class(orders_path) do %>
+        <span aria-hidden="true" class="text-lg">📋</span>
+        <span>Pedidos</span>
+      <% end %>
+      <%= link_to kitchen_path, class: dashboard_nav_link_class(kitchen_path) do %>
+        <span aria-hidden="true" class="text-lg">🔥</span>
+        <span>Cozinha</span>
+      <% end %>
+      <%= link_to customers_path, class: dashboard_nav_link_class(customers_path) do %>
+        <span aria-hidden="true" class="text-lg">👤</span>
+        <span>Clientes</span>
+      <% end %>
+    <% else %>
+      <%= link_to dashboard_path(anchor: "categorias"), class: dashboard_nav_link_class do %>
+        <span aria-hidden="true" class="text-lg">🏷</span>
+        <span>Categorias</span>
+      <% end %>
+      <button type="button" data-cart-open class="<%= dashboard_nav_link_class %>">
+        <span aria-hidden="true" class="text-lg">🛒</span>
+        <span>Carrinho</span>
+      </button>
+      <%= link_to login_path, class: dashboard_nav_link_class(login_path) do %>
+        <span aria-hidden="true" class="text-lg">🔐</span>
+        <span>Entrar</span>
+      <% end %>
     <% end %>
   </div>
 </nav>
 
-<div class="fixed bottom-24 right-4 z-40 sm:right-6">
-  <%= link_to(logged_in? ? new_order_path : login_path, class: "flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-300 text-2xl text-stone-950 shadow-lg shadow-amber-400/20 transition hover:rotate-6 hover:bg-amber-200") do %>
-    <span aria-hidden="true">⚡</span>
-  <% end %>
-</div>
+<% if logged_in? %>
+  <div class="fixed bottom-24 right-4 z-40 sm:right-6">
+    <%= link_to new_order_path, class: "flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-300 text-2xl text-stone-950 shadow-lg shadow-amber-400/20 transition hover:rotate-6 hover:bg-amber-200" do %>
+      <span aria-hidden="true">⚡</span>
+    <% end %>
+  </div>
+<% end %>
 
 <script>
   document.addEventListener("turbo:load", function () {
-    var badge = document.getElementById("cart-count");
-    var buttons = document.querySelectorAll("[data-add-item]");
+    var drawer = document.querySelector("[data-cart-drawer]");
+    var overlay = document.querySelector("[data-cart-overlay]");
+    var openButtons = document.querySelectorAll("[data-cart-open]");
+    var closeButtons = document.querySelectorAll("[data-cart-close]");
 
-    buttons.forEach(function (button) {
-      button.addEventListener("click", function () {
-        var icon = button.querySelector("[data-add-icon]");
-        var current = parseInt(badge.textContent || "0", 10);
+    if (!drawer || !overlay) return;
 
-        badge.textContent = current + 1;
-        badge.classList.add("scale-110");
-        icon.textContent = "✓";
-        button.classList.add("bg-emerald-500", "text-white");
-        button.classList.remove("bg-orange-500", "text-stone-950");
-
-        setTimeout(function () {
-          badge.classList.remove("scale-110");
-          icon.textContent = "+";
-          button.classList.remove("bg-emerald-500", "text-white");
-          button.classList.add("bg-orange-500", "text-stone-950");
-        }, 1000);
+    function setExpanded(value) {
+      openButtons.forEach(function (button) {
+        button.setAttribute("aria-expanded", value ? "true" : "false");
       });
+    }
+
+    function openCart() {
+      drawer.classList.remove("translate-x-full");
+      drawer.classList.add("translate-x-0");
+      overlay.classList.remove("pointer-events-none", "opacity-0");
+      overlay.classList.add("opacity-100");
+      document.body.classList.add("overflow-hidden");
+      setExpanded(true);
+    }
+
+    function closeCart() {
+      drawer.classList.add("translate-x-full");
+      drawer.classList.remove("translate-x-0");
+      overlay.classList.add("pointer-events-none", "opacity-0");
+      overlay.classList.remove("opacity-100");
+      document.body.classList.remove("overflow-hidden");
+      setExpanded(false);
+    }
+
+    openButtons.forEach(function (button) {
+      button.addEventListener("click", openCart);
     });
+
+    closeButtons.forEach(function (button) {
+      button.addEventListener("click", closeCart);
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") closeCart();
+    });
+
+    if (drawer.classList.contains("translate-x-0")) {
+      document.body.classList.add("overflow-hidden");
+      setExpanded(true);
+    }
   });
 </script>

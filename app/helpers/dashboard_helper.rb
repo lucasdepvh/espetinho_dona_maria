@@ -30,9 +30,11 @@ module DashboardHelper
     "DESTAQUE"
   end
 
-  def dashboard_nav_link_class(path)
+  def dashboard_nav_link_class(path = nil, active: false)
     base = "flex min-w-0 flex-col items-center justify-center gap-1 rounded-2xl px-3 py-2 text-xs font-medium transition"
-    current_page?(path) ? "#{base} bg-orange-500 text-stone-950" : "#{base} text-stone-400 hover:text-stone-100"
+    current = active || (path.present? && current_page?(path))
+
+    current ? "#{base} bg-orange-500 text-stone-950" : "#{base} text-stone-400 hover:text-stone-100"
   end
 
   def dashboard_status_badge_class(status)
@@ -44,5 +46,21 @@ module DashboardHelper
       "delivered" => "bg-stone-500/15 text-stone-200 ring-1 ring-inset ring-stone-400/30",
       "canceled" => "bg-red-500/15 text-red-200 ring-1 ring-inset ring-red-400/30"
     }[status.to_s] || "bg-slate-500/15 text-slate-200 ring-1 ring-inset ring-slate-400/30"
+  end
+
+  def dashboard_operation_links(user)
+    links = [
+      { label: "Pedidos", path: orders_path, emoji: "📋", description: "Abrir pedidos e acompanhar atendimento" },
+      { label: "Clientes", path: customers_path, emoji: "👤", description: "Consultar cadastro e historico rapido" },
+      { label: "Cozinha", path: kitchen_path, emoji: "🔥", description: "Ver itens em preparo e pendencias" }
+    ]
+
+    if user&.admin?
+      links << { label: "Produtos", path: products_path, emoji: "🍢", description: "Ajustar cardapio e disponibilidade" }
+      links << { label: "Categorias", path: categories_path, emoji: "🏷", description: "Organizar exibicao do cardapio" }
+      links << { label: "Configuracoes", path: edit_settings_path, emoji: "⚙", description: "Dados da casa e taxa padrao" }
+    end
+
+    links
   end
 end

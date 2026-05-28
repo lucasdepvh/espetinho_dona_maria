@@ -1,6 +1,10 @@
 Rails.application.routes.draw do
   root "dashboard#index"
   get "dashboard", to: "dashboard#index", as: :dashboard
+  post "dashboard/cart_items/:product_id", to: "dashboard#add_to_cart", as: :dashboard_cart_items
+  patch "dashboard/cart_items/:product_id", to: "dashboard#update_cart_item", as: :dashboard_cart_item
+  delete "dashboard/cart", to: "dashboard#clear_cart", as: :dashboard_cart
+  post "dashboard/cart/whatsapp", to: "dashboard#request_cart_whatsapp", as: :dashboard_cart_whatsapp
 
   get "login", to: "sessions#new"
   post "login", to: "sessions#create"
