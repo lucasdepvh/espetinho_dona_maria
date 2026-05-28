@@ -1,272 +1,312 @@
 <% content_for :title, "#{@setting.establishment_name} - Dashboard" %>
 <% content_for :body_class, "bg-[#121414] text-stone-100 antialiased" %>
-<% content_for :main_class, "pb-28" %>
+<% content_for :main_class, "pb-44" %>
 <% content_for :hide_app_header, true %>
+<% content_for :head do %>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: "Sora", sans-serif; }
+  </style>
+<% end %>
+
 <% cart_drawer_open = params[:cart] == "open" %>
+<% drawer_open = params[:menu] == "open" %>
+<% categories_with_products = @categories.filter_map do |category| %>
+  <% active_products = category.products.select(&:active).sort_by(&:name) %>
+  <% next if active_products.empty? %>
+  <% { category:, products: active_products } %>
+<% end %>
+<% highlight_products = @popular_products.first(3) %>
 
-<header class="fixed inset-x-0 top-0 z-50 border-b border-stone-800 bg-[#121414]/95 backdrop-blur">
+<div class="pointer-events-none fixed inset-x-0 top-0 z-0 h-80 bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.25),_transparent_55%)]"></div>
+
+<header class="fixed inset-x-0 top-0 z-50 border-b border-stone-800/80 bg-[#171919]/90 backdrop-blur">
   <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-    <div class="flex items-center gap-4">
-      <div class="flex h-11 w-11 items-center justify-center rounded-full bg-stone-900/80 text-xl text-orange-300">
-        <span aria-hidden="true">🔥</span>
-      </div>
-      <div>
-        <p class="text-xs font-medium uppercase tracking-[0.18em] text-stone-500">
-          <%= logged_in? ? "Painel da casa" : "Cardapio" %>
-        </p>
-        <h1 class="text-base font-semibold text-orange-300 sm:text-lg"><%= @setting.establishment_name.upcase %></h1>
-      </div>
-    </div>
-
-    <div class="flex items-center gap-2">
-      <% if logged_in? %>
-        <%= link_to logout_path, data: { turbo_method: :delete }, class: "inline-flex items-center rounded-full border border-stone-800 px-4 py-2 text-sm font-medium text-stone-300 transition hover:border-orange-400 hover:text-stone-100" do %>
-          Sair
-        <% end %>
-      <% else %>
-        <%= link_to login_path, class: "inline-flex items-center rounded-full border border-stone-800 px-4 py-2 text-sm font-medium text-stone-300 transition hover:border-orange-400 hover:text-stone-100" do %>
-          Entrar
-        <% end %>
-      <% end %>
-
-      <button type="button" data-cart-open class="relative flex h-11 w-11 items-center justify-center rounded-full text-orange-300 transition hover:bg-stone-800" aria-controls="carrinho" aria-expanded="<%= cart_drawer_open %>">
-        <span aria-hidden="true" class="text-lg">🛒</span>
-        <span id="cart-count" class="absolute right-1 top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1 text-[11px] font-bold text-stone-950"><%= @cart_count %></span>
+    <div class="flex items-center gap-3">
+      <button type="button" data-drawer-open class="flex h-11 w-11 items-center justify-center rounded-full border border-stone-700 bg-stone-900/80 text-xl text-stone-200 transition hover:border-orange-400 hover:text-orange-200">
+        ☰
       </button>
+      <div>
+        <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-stone-500">
+          <%= logged_in? ? "Painel da casa" : "Cardapio digital" %>
+        </p>
+        <h1 class="text-base font-bold tracking-tight text-orange-200 sm:text-lg"><%= @setting.establishment_name.upcase %></h1>
+      </div>
     </div>
+
+    <button type="button" data-cart-open class="relative flex h-11 w-11 items-center justify-center rounded-full border border-stone-700 bg-stone-900/80 text-xl text-orange-200 transition hover:border-orange-400" aria-controls="carrinho" aria-expanded="<%= cart_drawer_open %>">
+      🛒
+      <% if @cart_count.positive? %>
+        <span id="cart-count" class="absolute right-0 top-0 flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1 text-[10px] font-bold text-stone-950"><%= @cart_count %></span>
+      <% end %>
+    </button>
   </div>
 </header>
 
-<% if logged_in? %>
-  <section class="mx-auto mb-10 max-w-6xl px-4 sm:px-6">
-    <div class="mb-4">
-      <h3 class="text-2xl font-semibold text-stone-100">Painel da operacao</h3>
-      <p class="text-sm text-stone-400">Somente equipe. Atalhos para fluxo interno sem poluir visao de cliente.</p>
-    </div>
-
-    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-      <% dashboard_operation_links(current_user).each do |link| %>
-        <%= link_to link[:path], class: "rounded-2xl border border-stone-800 bg-stone-900/75 p-5 transition hover:border-orange-400" do %>
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <h4 class="text-lg font-semibold text-stone-100"><%= link[:label] %></h4>
-              <p class="mt-2 text-sm text-stone-400"><%= link[:description] %></p>
-            </div>
-            <span class="text-3xl" aria-hidden="true"><%= link[:emoji] %></span>
+<main class="relative z-10 pt-20">
+  <% if logged_in? %>
+    <section class="mx-auto mb-8 max-w-6xl px-4 sm:px-6">
+      <div class="rounded-[28px] border border-stone-800 bg-stone-900/70 p-5 shadow-2xl shadow-black/20">
+        <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p class="text-sm font-medium text-orange-200">Operacao da casa</p>
+            <h2 class="mt-1 text-3xl font-extrabold tracking-tight text-white">Tudo pronto para atender rapido</h2>
+            <p class="mt-2 max-w-2xl text-sm text-stone-400">Atalhos internos seguem aqui. Area do cliente ficou mais focada em escolher item e fechar pedido.</p>
           </div>
+
+          <div class="grid flex-1 gap-3 sm:grid-cols-3">
+            <div class="rounded-2xl border border-stone-800 bg-stone-950/70 p-4">
+              <p class="text-xs uppercase tracking-[0.2em] text-stone-500">Pedidos ativos</p>
+              <p class="mt-3 text-3xl font-bold text-orange-200"><%= @active_orders_count %></p>
+            </div>
+            <div class="rounded-2xl border border-stone-800 bg-stone-950/70 p-4">
+              <p class="text-xs uppercase tracking-[0.2em] text-stone-500">Hoje</p>
+              <p class="mt-3 text-3xl font-bold text-orange-200"><%= @orders_today.count %></p>
+            </div>
+            <div class="rounded-2xl border border-stone-800 bg-stone-950/70 p-4">
+              <p class="text-xs uppercase tracking-[0.2em] text-stone-500">Receita</p>
+              <p class="mt-3 text-3xl font-bold text-orange-200"><%= brl(@revenue_today) %></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <% dashboard_operation_links(current_user).each do |link| %>
+            <%= link_to link[:path], class: "rounded-2xl border border-stone-800 bg-stone-950/75 p-4 transition hover:border-orange-400 hover:-translate-y-0.5" do %>
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <h3 class="text-lg font-semibold text-white"><%= link[:label] %></h3>
+                  <p class="mt-2 text-sm text-stone-400"><%= link[:description] %></p>
+                </div>
+                <span class="text-3xl" aria-hidden="true"><%= link[:emoji] %></span>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </section>
+  <% end %>
+
+  <section class="mx-auto mb-6 max-w-6xl px-4 sm:px-6">
+    <div class="relative">
+      <span class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-stone-500">⌕</span>
+      <input type="text" placeholder="O que vamos brasar hoje?" class="h-14 w-full rounded-2xl border border-stone-800 bg-stone-900/70 pl-12 pr-4 text-sm text-stone-100 outline-none transition placeholder:text-stone-500 focus:border-orange-400">
+    </div>
+  </section>
+
+  <section id="categorias" class="mx-auto mb-8 max-w-6xl px-4 sm:px-6">
+    <div class="flex gap-4 overflow-x-auto pb-2">
+      <% categories_with_products.each_with_index do |entry, index| %>
+        <% category = entry[:category] %>
+        <% tone = dashboard_category_tone(category.name) %>
+        <%= link_to dashboard_path(anchor: "categoria-#{category.id}"), class: "group min-w-[112px] flex-none" do %>
+          <article class="rounded-[28px] border bg-gradient-to-br p-3 transition duration-200 hover:-translate-y-0.5 <%= tone %> <%= index.zero? ? 'ring-2 ring-orange-400/50' : '' %>">
+            <div class="flex h-20 items-center justify-center rounded-2xl bg-black/20 text-4xl">
+              <span aria-hidden="true"><%= dashboard_category_icon(category.name) %></span>
+            </div>
+            <div class="mt-3">
+              <h3 class="text-sm font-bold"><%= category.name %></h3>
+              <p class="mt-1 text-xs text-white/70"><%= dashboard_category_label(category) %></p>
+            </div>
+          </article>
         <% end %>
       <% end %>
     </div>
   </section>
-<% end %>
 
-<section id="cardapio" class="mx-auto mb-10 max-w-6xl px-4 sm:px-6">
-  <div class="mb-4 flex items-end justify-between gap-4">
-    <div>
-      <h3 class="text-2xl font-semibold text-stone-100">Ofertas de brasa</h3>
-      <p class="text-sm text-stone-400">Destaques para acelerar decisao e atendimento.</p>
+  <section id="cardapio" class="mx-auto mb-10 max-w-6xl px-4 sm:px-6">
+    <div class="mb-4 flex items-end justify-between gap-4">
+      <div>
+        <h2 class="text-2xl font-bold tracking-tight text-white">Mais pedidos</h2>
+        <p class="mt-1 text-sm text-stone-400">Selecao forte para cliente decidir sem enrolar.</p>
+      </div>
+      <button type="button" data-cart-open class="text-sm font-semibold text-orange-200 hover:text-orange-100">Ver carrinho</button>
     </div>
-    <%= link_to "Ver categorias", dashboard_path(anchor: "categorias"), class: "text-sm font-semibold text-orange-300 hover:text-orange-200" %>
-  </div>
 
-  <% if @featured_products.any? %>
-    <div class="flex snap-x gap-4 overflow-x-auto pb-2">
-      <% @featured_products.each do |product| %>
-        <article class="relative h-56 min-w-[300px] snap-start overflow-hidden rounded-2xl border border-stone-800 bg-stone-900">
-          <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(251,146,60,0.30),_transparent_55%),linear-gradient(180deg,_rgba(28,25,23,0.15),_rgba(12,10,9,0.92))]"></div>
-          <div class="absolute inset-x-0 bottom-0 p-5">
-            <span class="mb-3 inline-flex rounded-md bg-amber-300 px-2 py-1 text-[11px] font-bold tracking-wide text-stone-950"><%= dashboard_promo_label(product) %></span>
-            <h4 class="text-xl font-bold text-white"><%= product.name %></h4>
-            <p class="mt-1 text-sm text-stone-200"><%= dashboard_product_description(product) %></p>
-            <div class="mt-4 flex items-center justify-between gap-4">
-              <p class="text-lg font-bold text-orange-300"><%= brl(product.price) %></p>
-              <%= button_to dashboard_cart_items_path(product), method: :post, class: "inline-flex items-center rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-stone-950 transition hover:bg-orange-400" do %>
-                Adicionar
-              <% end %>
-            </div>
-          </div>
-        </article>
-      <% end %>
-    </div>
-  <% else %>
-    <div class="rounded-2xl border border-dashed border-stone-800 bg-stone-900/40 p-6 text-sm text-stone-400">
-      Nenhum destaque disponivel no momento.
-    </div>
-  <% end %>
-</section>
+    <% if highlight_products.any? %>
+      <div class="space-y-4">
+        <% highlight_products.each do |product| %>
+          <% quantity = @cart_quantities[product.id.to_s].to_i %>
+          <% tone = dashboard_category_tone(product.category.name) %>
+          <% surface = dashboard_category_surface(product.category.name) %>
+          <article class="overflow-hidden rounded-[30px] border border-stone-800 bg-stone-900/80 shadow-xl shadow-black/20">
+            <div class="flex flex-col sm:flex-row">
+              <div class="flex min-h-52 w-full flex-col justify-between bg-gradient-to-br p-5 sm:w-52 <%= tone %>">
+                <span class="inline-flex w-fit rounded-full px-3 py-1 text-[11px] font-extrabold tracking-[0.24em] <%= surface %>"><%= dashboard_promo_label(product) %></span>
+                <div class="mt-6">
+                  <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-black/20 text-4xl">
+                    <span aria-hidden="true"><%= dashboard_category_icon(product.category.name) %></span>
+                  </div>
+                  <p class="text-sm font-medium text-white/70"><%= product.category.name %></p>
+                  <p class="mt-2 text-3xl font-extrabold tracking-tight text-white"><%= brl(product.price) %></p>
+                </div>
+              </div>
 
-<section id="categorias" class="mx-auto mb-10 max-w-6xl px-4 sm:px-6">
-  <h3 class="mb-5 text-2xl font-semibold text-stone-100">Categorias</h3>
-  <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-    <% @categories.each do |category| %>
-      <article class="rounded-2xl border border-stone-800 bg-stone-900/70 p-4 transition hover:border-orange-400">
-        <div class="flex aspect-square items-center justify-center rounded-2xl bg-stone-800 text-4xl">
-          <span aria-hidden="true"><%= dashboard_category_icon(category.name) %></span>
-        </div>
-        <div class="mt-3">
-          <h4 class="font-semibold text-stone-100"><%= category.name %></h4>
-          <p class="mt-1 text-sm text-stone-400"><%= dashboard_category_label(category) %></p>
-        </div>
-      </article>
-    <% end %>
-  </div>
-</section>
+              <div class="flex flex-1 flex-col justify-between p-5">
+                <div>
+                  <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <h3 class="text-2xl font-bold tracking-tight text-white"><%= product.name %></h3>
+                      <p class="mt-3 max-w-2xl text-sm leading-6 text-stone-300"><%= dashboard_product_description(product) %></p>
+                    </div>
+                    <span class="rounded-full border border-stone-700 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-stone-400"><%= dashboard_product_portion(product) %></span>
+                  </div>
+                </div>
 
-<section class="mx-auto mb-10 max-w-6xl px-4 sm:px-6">
-  <div class="mb-4 flex items-end justify-between gap-4">
-    <div>
-      <h3 class="text-2xl font-semibold text-stone-100">Mais pedidos</h3>
-      <p class="text-sm text-stone-400">Itens com giro forte e leitura simples para cliente.</p>
-    </div>
-    <button type="button" data-cart-open class="text-sm font-semibold text-orange-300 hover:text-orange-200">Ver carrinho</button>
-  </div>
+                <div class="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div class="inline-flex items-center rounded-full border border-stone-700 bg-stone-950/70 p-1">
+                    <%= button_to dashboard_cart_item_path(product), method: :patch, params: { quantity: quantity - 1 }, form_class: "contents", class: "flex h-10 w-10 items-center justify-center rounded-full text-lg text-stone-300 transition hover:bg-stone-800 hover:text-white" do %>
+                      -
+                    <% end %>
+                    <span class="flex min-w-10 items-center justify-center px-3 text-sm font-bold text-white"><%= quantity %></span>
+                    <%= button_to dashboard_cart_items_path(product), method: :post, form_class: "contents", class: "flex h-10 w-10 items-center justify-center rounded-full bg-orange-500 text-lg font-bold text-stone-950 transition hover:bg-orange-400" do %>
+                      +
+                    <% end %>
+                  </div>
 
-  <% if @popular_products.any? %>
-    <div class="grid gap-4 lg:grid-cols-2">
-      <% @popular_products.each do |product| %>
-        <article class="flex gap-4 rounded-2xl border border-stone-800 bg-stone-900/80 p-4 transition hover:border-orange-400">
-          <div class="flex h-24 w-24 flex-none items-center justify-center rounded-2xl bg-stone-800 text-4xl">
-            <span aria-hidden="true"><%= dashboard_category_icon(product.category.name) %></span>
-          </div>
-          <div class="flex min-w-0 flex-1 items-center justify-between gap-4">
-            <div class="min-w-0">
-              <h4 class="truncate text-base font-semibold text-stone-100"><%= product.name %></h4>
-              <p class="mt-1 line-clamp-2 text-sm text-stone-400"><%= dashboard_product_description(product) %></p>
-              <p class="mt-3 text-lg font-bold text-orange-300"><%= brl(product.price) %></p>
-            </div>
-            <%= button_to dashboard_cart_items_path(product), method: :post, class: "inline-flex items-center rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-stone-950 transition hover:bg-orange-400" do %>
-              Adicionar
-            <% end %>
-          </div>
-        </article>
-      <% end %>
-    </div>
-  <% else %>
-    <div class="rounded-2xl border border-dashed border-stone-800 bg-stone-900/40 p-6 text-sm text-stone-400">
-      Nenhum produto ativo para exibir.
-    </div>
-  <% end %>
-</section>
-
-<div data-cart-overlay class="fixed inset-0 z-[60] bg-black/45 backdrop-blur-[1px] transition-opacity <%= cart_drawer_open ? "opacity-100" : "pointer-events-none opacity-0" %>">
-  <button type="button" data-cart-close class="h-full w-full cursor-default" aria-label="Fechar carrinho"></button>
-</div>
-
-<aside id="carrinho" data-cart-drawer class="fixed inset-y-0 right-0 z-[70] flex w-full max-w-[420px] flex-col bg-white text-stone-950 shadow-2xl shadow-black/30 transition-transform duration-200 <%= cart_drawer_open ? "translate-x-0" : "translate-x-full" %>" aria-label="Carrinho">
-  <div class="flex items-center justify-between gap-4 px-5 py-6">
-    <h3 class="text-xl font-bold text-stone-950">Carrinho de Compras</h3>
-    <button type="button" data-cart-close class="flex h-10 w-10 items-center justify-center text-3xl font-light leading-none text-stone-900 transition hover:text-orange-600" aria-label="Fechar carrinho">
-      ×
-    </button>
-  </div>
-
-  <div class="flex-1 overflow-y-auto px-5 pb-5">
-    <% if @cart_items.any? %>
-      <div class="space-y-5">
-        <% @cart_items.each do |item| %>
-          <div class="grid grid-cols-[56px_1fr_auto] gap-3">
-            <div class="flex h-16 w-14 items-center justify-center rounded-md bg-orange-100 text-2xl">
-              <span aria-hidden="true"><%= dashboard_category_icon(item[:product].category.name) %></span>
-            </div>
-
-            <div class="min-w-0">
-              <p class="line-clamp-2 text-sm font-bold uppercase leading-5 text-stone-900"><%= item[:product].name %></p>
-              <p class="mt-1 text-xs text-stone-500"><%= dashboard_product_description(item[:product]) %></p>
-
-              <div class="mt-3 inline-flex h-9 items-center overflow-hidden rounded-md border border-stone-200 bg-white">
-                <%= button_to dashboard_cart_item_path(item[:product]), method: :patch, params: { quantity: item[:quantity] - 1 }, class: "flex h-9 w-9 items-center justify-center text-sm text-stone-700 transition hover:bg-stone-100" do %>
-                  -
-                <% end %>
-                <span class="flex h-9 min-w-10 items-center justify-center border-x border-stone-200 px-3 text-sm font-semibold text-stone-900"><%= item[:quantity] %></span>
-                <%= button_to dashboard_cart_item_path(item[:product]), method: :patch, params: { quantity: item[:quantity] + 1 }, class: "flex h-9 w-9 items-center justify-center text-sm text-stone-400 transition hover:bg-stone-100 hover:text-stone-900" do %>
-                  +
-                <% end %>
+                  <div class="flex items-center gap-3">
+                    <% if quantity.zero? %>
+                      <%= button_to "Adicionar", dashboard_cart_items_path(product), method: :post, class: "inline-flex items-center justify-center rounded-2xl bg-orange-500 px-5 py-3 text-sm font-bold text-stone-950 transition hover:bg-orange-400" %>
+                    <% else %>
+                      <button type="button" data-cart-open class="inline-flex items-center justify-center rounded-2xl border border-orange-400/40 bg-orange-500/10 px-5 py-3 text-sm font-bold text-orange-100 transition hover:border-orange-300 hover:bg-orange-500/20">
+                        Ver pedido
+                      </button>
+                    <% end %>
+                  </div>
+                </div>
               </div>
             </div>
-
-            <div class="flex flex-col items-end justify-between gap-4">
-              <%= button_to dashboard_cart_item_path(item[:product]), method: :patch, params: { quantity: 0 }, class: "flex h-8 w-8 items-center justify-center text-xl text-stone-500 transition hover:text-red-700", aria: { label: "Remover #{item[:product].name}" } do %>
-                🗑
-              <% end %>
-              <p class="whitespace-nowrap text-sm font-bold text-stone-950"><%= brl(item[:total]) %></p>
-            </div>
-          </div>
+          </article>
         <% end %>
       </div>
     <% else %>
-      <div class="mt-8 rounded-lg border border-dashed border-stone-200 bg-stone-50 p-6 text-center">
-        <p class="text-lg font-semibold text-stone-950">Carrinho vazio</p>
-        <p class="mt-2 text-sm text-stone-500">Adicione itens do cardapio para montar pedido com rapidez.</p>
-        <div class="mt-4">
-          <button type="button" data-cart-close class="inline-flex items-center rounded-full border border-stone-300 px-5 py-3 text-sm font-semibold text-stone-900 transition hover:border-orange-500">Continuar comprando</button>
+      <div class="rounded-3xl border border-dashed border-stone-800 bg-stone-900/50 p-6 text-sm text-stone-400">
+        Nenhum produto ativo para exibir.
+      </div>
+    <% end %>
+  </section>
+
+  <% categories_with_products.each do |entry| %>
+    <% category = entry[:category] %>
+    <% products = entry[:products] %>
+    <section id="categoria-<%= category.id %>" class="mx-auto mb-10 max-w-6xl px-4 sm:px-6">
+      <div class="mb-4 flex items-end justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-3">
+            <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-stone-900 text-2xl"><%= dashboard_category_icon(category.name) %></span>
+            <div>
+              <h2 class="text-2xl font-bold tracking-tight text-white"><%= category.name %></h2>
+              <p class="text-sm text-stone-400"><%= dashboard_category_label(category) %></p>
+            </div>
+          </div>
         </div>
       </div>
-    <% end %>
-  </div>
 
-  <div class="border-t border-stone-200 bg-white px-5 pb-6 pt-5">
-    <div class="mb-5 space-y-1 text-sm">
-      <div class="flex items-center justify-between gap-4 text-stone-600">
-        <span>Subtotal</span>
-        <span><%= brl(@cart_total) %></span>
-      </div>
-      <div class="flex items-center justify-between gap-4 text-stone-600">
-        <span>Desconto</span>
-        <span>-R$ 0,00</span>
-      </div>
-      <div class="flex items-center justify-between gap-4 text-xs font-bold text-stone-950">
-        <span>Total</span>
-        <span><%= brl(@cart_total) %></span>
-      </div>
-    </div>
-
-    <% if @cart_items.any? %>
-      <% if logged_in? %>
-        <%= link_to "Lancar pedido", new_order_path, class: "flex w-full items-center justify-center rounded-full bg-stone-950 px-4 py-4 text-base font-bold text-white transition hover:bg-stone-800" %>
-      <% else %>
-        <%= button_to "Solicitar no WhatsApp", dashboard_cart_whatsapp_path, method: :post, class: "flex w-full items-center justify-center rounded-full bg-stone-950 px-4 py-4 text-base font-bold text-white transition hover:bg-stone-800" %>
-      <% end %>
-      <button type="button" data-cart-close class="mt-3 flex w-full items-center justify-center rounded-full border border-stone-300 px-4 py-3 text-sm font-semibold text-stone-800 transition hover:border-stone-500">Continuar comprando</button>
-      <p class="mt-4 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-400">O pedido sera enviado pelo WhatsApp</p>
-    <% end %>
-  </div>
-</aside>
-
-<% if logged_in? %>
-  <section class="mx-auto mb-8 max-w-6xl px-4 sm:px-6">
-    <div class="mb-4 flex items-end justify-between gap-4">
-      <div>
-        <h3 class="text-2xl font-semibold text-stone-100">Pedidos em andamento</h3>
-        <p class="text-sm text-stone-400">Acompanhe o que precisa de atencao imediata.</p>
-      </div>
-      <%= link_to "Abrir pedidos", orders_path, class: "text-sm font-semibold text-orange-300 hover:text-orange-200" %>
-    </div>
-
-    <div class="grid gap-3">
-      <% if @latest_orders.any? %>
-        <% @latest_orders.each do |order| %>
-          <%= link_to order_path(order), class: "flex flex-col gap-3 rounded-2xl border border-stone-800 bg-stone-900/70 p-4 transition hover:border-orange-400 sm:flex-row sm:items-center sm:justify-between" do %>
-            <div>
-              <div class="flex items-center gap-3">
-                <span class="rounded-full bg-stone-800 px-3 py-1 text-xs font-semibold text-stone-300">Pedido #<%= order.id %></span>
-                <span class="rounded-full px-3 py-1 text-xs font-semibold <%= dashboard_status_badge_class(order.status) %>"><%= order_status_label(order.status) %></span>
+      <div class="grid gap-4 lg:grid-cols-2">
+        <% products.each do |product| %>
+          <% quantity = @cart_quantities[product.id.to_s].to_i %>
+          <% surface = dashboard_category_surface(product.category.name) %>
+          <article class="flex flex-col rounded-[28px] border border-stone-800 bg-stone-900/75 p-4 shadow-lg shadow-black/10 transition hover:border-orange-400">
+            <div class="flex items-start gap-4">
+              <div class="flex h-24 w-24 flex-none items-center justify-center rounded-[22px] text-4xl <%= surface %>">
+                <span aria-hidden="true"><%= dashboard_category_icon(product.category.name) %></span>
               </div>
-              <p class="mt-3 text-base font-semibold text-stone-100"><%= order.customer.name %></p>
-              <p class="text-sm text-stone-400"><%= order_type_label(order.order_type) %> • <%= l(order.created_at, format: :short) %></p>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                  <h3 class="text-lg font-bold text-white"><%= product.name %></h3>
+                  <span class="text-sm font-bold text-orange-200"><%= brl(product.price) %></span>
+                </div>
+                <p class="mt-2 text-sm leading-6 text-stone-400"><%= dashboard_product_description(product) %></p>
+              </div>
             </div>
-            <div class="text-left sm:text-right">
-              <p class="text-sm text-stone-500">Total</p>
-              <p class="text-lg font-bold text-orange-300"><%= brl(order.total) %></p>
+
+            <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <span class="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500"><%= dashboard_product_portion(product) %></span>
+              <div class="flex items-center gap-3">
+                <div class="inline-flex items-center rounded-full border border-stone-700 bg-stone-950/70 p-1">
+                  <%= button_to dashboard_cart_item_path(product), method: :patch, params: { quantity: quantity - 1 }, form_class: "contents", class: "flex h-9 w-9 items-center justify-center rounded-full text-sm text-stone-300 transition hover:bg-stone-800 hover:text-white" do %>
+                    -
+                  <% end %>
+                  <span class="flex min-w-8 items-center justify-center px-2 text-sm font-bold text-white"><%= quantity %></span>
+                  <%= button_to dashboard_cart_items_path(product), method: :post, form_class: "contents", class: "flex h-9 w-9 items-center justify-center rounded-full bg-orange-500 text-sm font-bold text-stone-950 transition hover:bg-orange-400" do %>
+                    +
+                  <% end %>
+                </div>
+                <%= button_to "Adicionar", dashboard_cart_items_path(product), method: :post, class: "inline-flex items-center justify-center rounded-2xl border border-stone-700 px-4 py-2 text-sm font-semibold text-stone-100 transition hover:border-orange-400 hover:text-orange-100" %>
+              </div>
+            </div>
+          </article>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+
+  <% if logged_in? %>
+    <section class="mx-auto mb-8 max-w-6xl px-4 sm:px-6">
+      <div class="mb-4 flex items-end justify-between gap-4">
+        <div>
+          <h2 class="text-2xl font-bold tracking-tight text-white">Pedidos em andamento</h2>
+          <p class="mt-1 text-sm text-stone-400">Nada some do fluxo interno. So mudou cara da vitrine.</p>
+        </div>
+        <%= link_to "Abrir pedidos", orders_path, class: "text-sm font-semibold text-orange-200 hover:text-orange-100" %>
+      </div>
+
+      <div class="grid gap-3">
+        <% if @latest_orders.any? %>
+          <% @latest_orders.each do |order| %>
+            <%= link_to order_path(order), class: "flex flex-col gap-3 rounded-[28px] border border-stone-800 bg-stone-900/70 p-4 transition hover:border-orange-400 sm:flex-row sm:items-center sm:justify-between" do %>
+              <div>
+                <div class="flex flex-wrap items-center gap-3">
+                  <span class="rounded-full bg-stone-800 px-3 py-1 text-xs font-semibold text-stone-300">Pedido #<%= order.id %></span>
+                  <span class="rounded-full px-3 py-1 text-xs font-semibold <%= dashboard_status_badge_class(order.status) %>"><%= order_status_label(order.status) %></span>
+                </div>
+                <p class="mt-3 text-base font-semibold text-white"><%= order.customer.name %></p>
+                <p class="text-sm text-stone-400"><%= order_type_label(order.order_type) %> • <%= l(order.created_at, format: :short) %></p>
+              </div>
+              <div class="text-left sm:text-right">
+                <p class="text-sm text-stone-500">Total</p>
+                <p class="text-lg font-bold text-orange-200"><%= brl(order.total) %></p>
+              </div>
+            <% end %>
+          <% end %>
+        <% else %>
+          <div class="rounded-3xl border border-dashed border-stone-800 bg-stone-900/40 p-6 text-sm text-stone-400">
+            Nenhum pedido recente encontrado.
+          </div>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+</main>
+
+<% if @cart_items.any? %>
+  <div id="bottom-bar" class="fixed inset-x-0 bottom-16 z-40 px-4 sm:px-6">
+    <div class="mx-auto max-w-6xl rounded-[30px] border border-stone-700 bg-stone-950/95 p-4 shadow-2xl shadow-black/30 backdrop-blur">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-stone-500">Total do pedido</p>
+          <p class="mt-1 text-2xl font-extrabold tracking-tight text-orange-200"><%= brl(@cart_total) %></p>
+        </div>
+
+        <div class="flex flex-1 flex-wrap items-center gap-2">
+          <% @cart_items.first(4).each do |item| %>
+            <div class="inline-flex items-center gap-2 rounded-full border border-stone-700 bg-stone-900 px-3 py-2 text-xs text-stone-200">
+              <span><%= dashboard_category_icon(item[:product].category.name) %></span>
+              <span><%= item[:quantity] %>x <%= item[:product].name %></span>
             </div>
           <% end %>
-        <% end %>
-      <% else %>
-        <div class="rounded-2xl border border-dashed border-stone-800 bg-stone-900/40 p-6 text-sm text-stone-400">
-          Nenhum pedido recente encontrado.
         </div>
-      <% end %>
+
+        <% if logged_in? %>
+          <%= link_to "Lancar pedido", new_order_path, class: "inline-flex h-12 items-center justify-center rounded-2xl bg-orange-500 px-5 text-sm font-bold text-stone-950 transition hover:bg-orange-400" %>
+        <% else %>
+          <%= button_to "Pedir via WhatsApp", dashboard_cart_whatsapp_path, method: :post, class: "inline-flex h-12 items-center justify-center rounded-2xl bg-orange-500 px-5 text-sm font-bold text-stone-950 transition hover:bg-orange-400" %>
+        <% end %>
+      </div>
     </div>
-  </section>
+  </div>
 <% end %>
 
 <nav class="fixed inset-x-0 bottom-0 z-50 border-t border-stone-800 bg-[#111313]/95 backdrop-blur">
@@ -298,17 +338,166 @@
         <span aria-hidden="true" class="text-lg">🛒</span>
         <span>Carrinho</span>
       </button>
-      <%= link_to login_path, class: dashboard_nav_link_class(login_path) do %>
-        <span aria-hidden="true" class="text-lg">🔐</span>
-        <span>Entrar</span>
-      <% end %>
     <% end %>
   </div>
 </nav>
 
+<div data-cart-overlay class="fixed inset-0 z-[60] bg-black/55 backdrop-blur-[2px] transition-opacity <%= cart_drawer_open ? "opacity-100" : "pointer-events-none opacity-0" %>">
+  <button type="button" data-cart-close class="h-full w-full cursor-default" aria-label="Fechar carrinho"></button>
+</div>
+
+<aside id="carrinho" data-cart-drawer class="fixed inset-y-0 right-0 z-[70] flex w-full max-w-[430px] flex-col border-l border-stone-800 bg-[#171919] text-stone-100 shadow-2xl shadow-black/40 transition-transform duration-200 <%= cart_drawer_open ? "translate-x-0" : "translate-x-full" %>" aria-label="Carrinho">
+  <div class="flex items-center justify-between gap-4 border-b border-stone-800 px-5 py-5">
+    <div>
+      <p class="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">Carrinho</p>
+      <h3 class="text-xl font-bold text-white">Pedido do cliente</h3>
+    </div>
+    <button type="button" data-cart-close class="flex h-10 w-10 items-center justify-center rounded-full border border-stone-700 text-2xl text-stone-300 transition hover:border-orange-400 hover:text-orange-100" aria-label="Fechar carrinho">
+      ×
+    </button>
+  </div>
+
+  <div class="flex-1 overflow-y-auto px-5 py-5">
+    <% if @cart_items.any? %>
+      <div class="space-y-4">
+        <% @cart_items.each do |item| %>
+          <article class="rounded-[26px] border border-stone-800 bg-stone-900/75 p-4">
+            <div class="flex items-start gap-4">
+              <div class="flex h-16 w-16 items-center justify-center rounded-2xl text-3xl <%= dashboard_category_surface(item[:product].category.name) %>">
+                <span aria-hidden="true"><%= dashboard_category_icon(item[:product].category.name) %></span>
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <h4 class="text-sm font-bold uppercase tracking-[0.08em] text-white"><%= item[:product].name %></h4>
+                    <p class="mt-1 text-xs text-stone-500"><%= dashboard_product_description(item[:product]) %></p>
+                  </div>
+                  <p class="whitespace-nowrap text-sm font-bold text-orange-200"><%= brl(item[:total]) %></p>
+                </div>
+
+                <div class="mt-4 flex items-center justify-between gap-3">
+                  <div class="inline-flex items-center rounded-full border border-stone-700 bg-stone-950/70 p-1">
+                    <%= button_to dashboard_cart_item_path(item[:product]), method: :patch, params: { quantity: item[:quantity] - 1 }, form_class: "contents", class: "flex h-9 w-9 items-center justify-center rounded-full text-sm text-stone-300 transition hover:bg-stone-800 hover:text-white" do %>
+                      -
+                    <% end %>
+                    <span class="flex min-w-8 items-center justify-center px-2 text-sm font-bold text-white"><%= item[:quantity] %></span>
+                    <%= button_to dashboard_cart_items_path(item[:product]), method: :post, form_class: "contents", class: "flex h-9 w-9 items-center justify-center rounded-full bg-orange-500 text-sm font-bold text-stone-950 transition hover:bg-orange-400" do %>
+                      +
+                    <% end %>
+                  </div>
+
+                  <%= button_to dashboard_cart_item_path(item[:product]), method: :patch, params: { quantity: 0 }, class: "text-xs font-semibold uppercase tracking-[0.18em] text-red-300 transition hover:text-red-200" do %>
+                    Remover
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          </article>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="mt-8 rounded-[28px] border border-dashed border-stone-800 bg-stone-900/50 p-6 text-center">
+        <p class="text-lg font-semibold text-white">Carrinho vazio</p>
+        <p class="mt-2 text-sm text-stone-500">Adicione itens do cardapio para montar pedido rapido.</p>
+        <button type="button" data-cart-close class="mt-4 inline-flex items-center rounded-full border border-stone-700 px-5 py-3 text-sm font-semibold text-stone-200 transition hover:border-orange-400 hover:text-orange-100">Continuar comprando</button>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="border-t border-stone-800 bg-stone-950/80 px-5 py-5">
+    <div class="space-y-2 text-sm">
+      <div class="flex items-center justify-between gap-4 text-stone-400">
+        <span>Subtotal</span>
+        <span><%= brl(@cart_total) %></span>
+      </div>
+      <div class="flex items-center justify-between gap-4 text-stone-400">
+        <span>Entrega</span>
+        <span>A combinar</span>
+      </div>
+      <div class="flex items-center justify-between gap-4 pt-2 text-base font-bold text-white">
+        <span>Total</span>
+        <span><%= brl(@cart_total) %></span>
+      </div>
+    </div>
+
+    <% if @cart_items.any? %>
+      <div class="mt-5 space-y-3">
+        <% if logged_in? %>
+          <%= link_to "Lancar pedido", new_order_path, class: "flex w-full items-center justify-center rounded-2xl bg-orange-500 px-4 py-4 text-base font-bold text-stone-950 transition hover:bg-orange-400" %>
+        <% else %>
+          <%= button_to "Pedir via WhatsApp", dashboard_cart_whatsapp_path, method: :post, class: "flex w-full items-center justify-center rounded-2xl bg-orange-500 px-4 py-4 text-base font-bold text-stone-950 transition hover:bg-orange-400" %>
+        <% end %>
+        <%= button_to "Esvaziar carrinho", dashboard_cart_path, method: :delete, class: "flex w-full items-center justify-center rounded-2xl border border-stone-700 px-4 py-3 text-sm font-semibold text-stone-200 transition hover:border-red-400 hover:text-red-200" %>
+      </div>
+    <% end %>
+  </div>
+</aside>
+
+<div data-drawer-overlay class="fixed inset-0 z-[72] bg-black/55 backdrop-blur-[2px] transition-opacity <%= drawer_open ? "opacity-100" : "pointer-events-none opacity-0" %>">
+  <button type="button" data-drawer-close class="h-full w-full cursor-default" aria-label="Fechar menu"></button>
+</div>
+
+<aside data-side-drawer class="fixed inset-y-0 left-0 z-[73] flex w-full max-w-[320px] flex-col border-r border-stone-800 bg-[#181919] text-stone-100 shadow-2xl shadow-black/40 transition-transform duration-200 <%= drawer_open ? "translate-x-0" : "-translate-x-full" %>">
+  <div class="border-b border-stone-800 px-6 py-6">
+    <div class="flex items-center gap-4">
+      <div class="flex h-12 w-12 items-center justify-center rounded-full bg-orange-500 text-xl font-bold text-stone-950">🔥</div>
+      <div>
+        <p class="text-sm font-semibold text-white"><%= logged_in? ? current_user.name : "Ola, cliente" %></p>
+        <p class="text-xs text-stone-500"><%= logged_in? ? "Acesso interno liberado" : "Escolha seus itens e finalize rapido" %></p>
+      </div>
+    </div>
+  </div>
+
+  <nav class="flex-1 space-y-2 px-3 py-5">
+    <%= link_to dashboard_path, class: "flex items-center gap-4 rounded-r-full bg-orange-500/15 px-4 py-3 font-semibold text-orange-100" do %>
+      <span>🏠</span>
+      <span>Inicio</span>
+    <% end %>
+    <%= link_to dashboard_path(anchor: "cardapio"), class: "flex items-center gap-4 rounded-r-full px-4 py-3 text-stone-300 transition hover:bg-stone-900 hover:text-white" do %>
+      <span>🍽</span>
+      <span>Cardapio</span>
+    <% end %>
+    <%= link_to dashboard_path(anchor: "categorias"), class: "flex items-center gap-4 rounded-r-full px-4 py-3 text-stone-300 transition hover:bg-stone-900 hover:text-white" do %>
+      <span>🏷</span>
+      <span>Categorias</span>
+    <% end %>
+
+    <% if logged_in? %>
+      <%= link_to orders_path, class: "flex items-center gap-4 rounded-r-full px-4 py-3 text-stone-300 transition hover:bg-stone-900 hover:text-white" do %>
+        <span>📋</span>
+        <span>Meus pedidos</span>
+      <% end %>
+      <%= link_to customers_path, class: "flex items-center gap-4 rounded-r-full px-4 py-3 text-stone-300 transition hover:bg-stone-900 hover:text-white" do %>
+        <span>👤</span>
+        <span>Clientes</span>
+      <% end %>
+      <%= link_to kitchen_path, class: "flex items-center gap-4 rounded-r-full px-4 py-3 text-stone-300 transition hover:bg-stone-900 hover:text-white" do %>
+        <span>🔥</span>
+        <span>Cozinha</span>
+      <% end %>
+      <% if current_user.admin? %>
+        <%= link_to products_path, class: "flex items-center gap-4 rounded-r-full px-4 py-3 text-stone-300 transition hover:bg-stone-900 hover:text-white" do %>
+          <span>🍢</span>
+          <span>Produtos</span>
+        <% end %>
+      <% end %>
+      <%= button_to "Sair", logout_path, method: :delete, class: "flex w-full items-center gap-4 rounded-r-full px-4 py-3 text-left text-red-300 transition hover:bg-red-500/10 hover:text-red-200" %>
+    <% else %>
+      <%= link_to login_path, class: "flex items-center gap-4 rounded-r-full px-4 py-3 text-stone-300 transition hover:bg-stone-900 hover:text-white" do %>
+        <span>🔐</span>
+        <span>Entrar</span>
+      <% end %>
+      <button type="button" data-cart-open class="flex w-full items-center gap-4 rounded-r-full px-4 py-3 text-left text-stone-300 transition hover:bg-stone-900 hover:text-white">
+        <span>🛒</span>
+        <span>Ver carrinho</span>
+      </button>
+    <% end %>
+  </nav>
+</aside>
+
 <% if logged_in? %>
   <div class="fixed bottom-24 right-4 z-40 sm:right-6">
-    <%= link_to new_order_path, class: "flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-300 text-2xl text-stone-950 shadow-lg shadow-amber-400/20 transition hover:rotate-6 hover:bg-amber-200" do %>
+    <%= link_to new_order_path, class: "flex h-14 w-14 items-center justify-center rounded-[22px] bg-amber-300 text-2xl text-stone-950 shadow-lg shadow-amber-400/20 transition hover:rotate-6 hover:bg-amber-200" do %>
       <span aria-hidden="true">⚡</span>
     <% end %>
   </div>
@@ -316,52 +505,97 @@
 
 <script>
   document.addEventListener("turbo:load", function () {
-    var drawer = document.querySelector("[data-cart-drawer]");
-    var overlay = document.querySelector("[data-cart-overlay]");
-    var openButtons = document.querySelectorAll("[data-cart-open]");
-    var closeButtons = document.querySelectorAll("[data-cart-close]");
+    var cartDrawer = document.querySelector("[data-cart-drawer]");
+    var cartOverlay = document.querySelector("[data-cart-overlay]");
+    var cartOpenButtons = document.querySelectorAll("[data-cart-open]");
+    var cartCloseButtons = document.querySelectorAll("[data-cart-close]");
+    var sideDrawer = document.querySelector("[data-side-drawer]");
+    var drawerOverlay = document.querySelector("[data-drawer-overlay]");
+    var drawerOpenButtons = document.querySelectorAll("[data-drawer-open]");
+    var drawerCloseButtons = document.querySelectorAll("[data-drawer-close]");
 
-    if (!drawer || !overlay) return;
+    function syncBodyLock() {
+      var cartOpen = cartDrawer && cartDrawer.classList.contains("translate-x-0");
+      var menuOpen = sideDrawer && sideDrawer.classList.contains("translate-x-0");
 
-    function setExpanded(value) {
-      openButtons.forEach(function (button) {
-        button.setAttribute("aria-expanded", value ? "true" : "false");
+      if (cartOpen || menuOpen) {
+        document.body.classList.add("overflow-hidden");
+      } else {
+        document.body.classList.remove("overflow-hidden");
+      }
+    }
+
+    if (cartDrawer && cartOverlay) {
+      function setCartExpanded(value) {
+        cartOpenButtons.forEach(function (button) {
+          button.setAttribute("aria-expanded", value ? "true" : "false");
+        });
+      }
+
+      function openCart() {
+        cartDrawer.classList.remove("translate-x-full");
+        cartDrawer.classList.add("translate-x-0");
+        cartOverlay.classList.remove("pointer-events-none", "opacity-0");
+        cartOverlay.classList.add("opacity-100");
+        setCartExpanded(true);
+        syncBodyLock();
+      }
+
+      function closeCart() {
+        cartDrawer.classList.add("translate-x-full");
+        cartDrawer.classList.remove("translate-x-0");
+        cartOverlay.classList.add("pointer-events-none", "opacity-0");
+        cartOverlay.classList.remove("opacity-100");
+        setCartExpanded(false);
+        syncBodyLock();
+      }
+
+      cartOpenButtons.forEach(function (button) {
+        button.addEventListener("click", openCart);
+      });
+
+      cartCloseButtons.forEach(function (button) {
+        button.addEventListener("click", closeCart);
       });
     }
 
-    function openCart() {
-      drawer.classList.remove("translate-x-full");
-      drawer.classList.add("translate-x-0");
-      overlay.classList.remove("pointer-events-none", "opacity-0");
-      overlay.classList.add("opacity-100");
-      document.body.classList.add("overflow-hidden");
-      setExpanded(true);
+    if (sideDrawer && drawerOverlay) {
+      function openDrawer() {
+        sideDrawer.classList.remove("-translate-x-full");
+        sideDrawer.classList.add("translate-x-0");
+        drawerOverlay.classList.remove("pointer-events-none", "opacity-0");
+        drawerOverlay.classList.add("opacity-100");
+        syncBodyLock();
+      }
+
+      function closeDrawer() {
+        sideDrawer.classList.add("-translate-x-full");
+        sideDrawer.classList.remove("translate-x-0");
+        drawerOverlay.classList.add("pointer-events-none", "opacity-0");
+        drawerOverlay.classList.remove("opacity-100");
+        syncBodyLock();
+      }
+
+      drawerOpenButtons.forEach(function (button) {
+        button.addEventListener("click", openDrawer);
+      });
+
+      drawerCloseButtons.forEach(function (button) {
+        button.addEventListener("click", closeDrawer);
+      });
     }
-
-    function closeCart() {
-      drawer.classList.add("translate-x-full");
-      drawer.classList.remove("translate-x-0");
-      overlay.classList.add("pointer-events-none", "opacity-0");
-      overlay.classList.remove("opacity-100");
-      document.body.classList.remove("overflow-hidden");
-      setExpanded(false);
-    }
-
-    openButtons.forEach(function (button) {
-      button.addEventListener("click", openCart);
-    });
-
-    closeButtons.forEach(function (button) {
-      button.addEventListener("click", closeCart);
-    });
 
     document.addEventListener("keydown", function (event) {
-      if (event.key === "Escape") closeCart();
+      if (event.key !== "Escape") return;
+
+      cartCloseButtons.forEach(function (button) {
+        button.click();
+      });
+      drawerCloseButtons.forEach(function (button) {
+        button.click();
+      });
     });
 
-    if (drawer.classList.contains("translate-x-0")) {
-      document.body.classList.add("overflow-hidden");
-      setExpanded(true);
-    }
+    syncBodyLock();
   });
 </script>

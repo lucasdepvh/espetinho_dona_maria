@@ -14,6 +14,26 @@ module DashboardHelper
     "#{count} #{'item'.pluralize(count)}"
   end
 
+  def dashboard_category_tone(category_name)
+    {
+      "Espetos" => "from-orange-500/30 via-orange-400/10 to-transparent text-orange-200 border-orange-400/40",
+      "Acompanhamentos" => "from-amber-400/30 via-amber-300/10 to-transparent text-amber-100 border-amber-300/40",
+      "Adicionais" => "from-stone-400/25 via-stone-300/10 to-transparent text-stone-100 border-stone-300/30",
+      "Bebidas" => "from-cyan-400/30 via-sky-300/10 to-transparent text-sky-100 border-sky-300/40",
+      "Combos" => "from-rose-400/30 via-orange-400/10 to-transparent text-rose-100 border-rose-300/40"
+    }[category_name] || "from-stone-500/25 via-stone-300/10 to-transparent text-stone-100 border-stone-300/30"
+  end
+
+  def dashboard_category_surface(category_name)
+    {
+      "Espetos" => "bg-orange-500 text-stone-950",
+      "Acompanhamentos" => "bg-amber-300 text-stone-950",
+      "Adicionais" => "bg-stone-300 text-stone-950",
+      "Bebidas" => "bg-sky-300 text-stone-950",
+      "Combos" => "bg-rose-300 text-stone-950"
+    }[category_name] || "bg-stone-200 text-stone-950"
+  end
+
   def dashboard_product_description(product)
     return product.description if product.description.present?
 
@@ -28,6 +48,12 @@ module DashboardHelper
     return "MAIS PEDIDO" if product.featured?
 
     "DESTAQUE"
+  end
+
+  def dashboard_product_portion(product)
+    return "#{product.average_preparation_time} min" if product.average_preparation_time.present?
+
+    product.category.name
   end
 
   def dashboard_nav_link_class(path = nil, active: false)
